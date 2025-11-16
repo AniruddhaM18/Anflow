@@ -1,0 +1,91 @@
+
+generator client {
+  provider = "prisma-client-js"
+  //output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String @id @unique @default(cuid())
+  username    String
+  email       String @unique
+  createdAt   DateTime @default(now())
+  workflows   Workflow[]
+  credentials Credential[]
+}
+
+model Workflow{
+  id          String @id @unique @default(cuid())
+  userId      String
+  title       String
+  isEnabled   Boolean
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flow        Json
+  executions  Execution[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Credential {
+  id        String @id @unique @default(cuid())
+  userId    String
+  title     String
+  platform  Platform
+  data      Json
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trigger {
+  id          String @id @default(cuid())
+  name        String
+  type        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Execution {
+  id             String @id @default(cuid())
+  workflowId     String
+  workflow       Workflow @relation(fields: [workflowId], references: [id])
+  startedAt      DateTime @default(now())
+  endedAt        DateTime?
+  status         ExecutionStatus @default(PENDING)
+  nodeExecutions NodeExecutiom[]
+}
+
+model NodeExecutiom {
+  id          String @id @default(cuid())
+  executionId String
+  nodeId      String
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  status      ExecutionStatus
+  output      Json?
+  error       Json?
+  execution Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  @@index([executionId, nodeId])
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum Actions {
+  TELEGRAM
+  GMAIL
+}
+
+enum Platform {
+  TELEGRAM
+  GMAIL
+}
