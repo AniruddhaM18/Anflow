@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+    --color-eerie : #252422;
+    --color-olive : #403D39;
+    --color-timberflow : #CCC5B9;
+    --color-floral : #FFFCF2;
+    --color-flame : #EB5E28;
+    --color-nback : #2e2e2e;
+    --color-ntab : #414244;
+    --color-sdbar : #535456;
+    --color-button : #ef4e39;
+    --color-bfclick : #ff6f5d;
+    --color-new : #8b4dea;
+    --color-nextnew : #30009c;
+    --color-lignew : #7492f5;
+}
+
+.outer-container {
+  background-image: url("../src/assets/bdrop.jpeg");
+  background-size: cover;
+  background-position: center;
+  width: 100vw;
+  height: 100vh;
+}
