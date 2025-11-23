@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { createTrigger, getAllTriggers } from "../controller/triggerController.js";
 
-const router : Router = Router();
+const triggerRouter : Router = Router();
 
-router.post("/trigger/", createTrigger);
-router.get("/trigger/", getAllTriggers);
+triggerRouter.post("/trigger/", createTrigger);
+triggerRouter.get("/trigger/", getAllTriggers);
 
-export default router
+export default triggerRouter
