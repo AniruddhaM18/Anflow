@@ -15,16 +15,16 @@ import { Tabbar } from '../components/Tabbar';
 import { Sidepanel } from '../components/Sidepanel';
 import { ManualTrigger } from '../components/triggers/ManualTrigger';
 import { WebhookTrigger } from '../components/triggers/WebhookTrigger';
-import { ResendNode } from '../components/nodes/resendNode';
-import { TelegramNode } from '../components/nodes/telegramNode';
-import { GeminiNode } from '../components/nodes/geminiNode';
+import { ResendNode } from '../components/nodes/ResendNode';
+import { TelegramNode } from '../components/nodes/TelegramNode';
+import { GeminiNode } from '../components/nodes/GeminiNode';
 
 
 const noteTypes = {
   manual: ManualTrigger,
   webhook: WebhookTrigger,
   resend: ResendNode,
-  telegram : TelegramNode,
+  telegram: TelegramNode,
   gemini: GeminiNode
 }
 
