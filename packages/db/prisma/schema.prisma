@@ -24,6 +24,8 @@ model Workflow{
   title       String
   isEnabled   Boolean
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes       Json
+  edges       Json
   flow        Json
   executions  Execution[]
   createdAt   DateTime @default(now())
@@ -57,10 +59,10 @@ model Execution {
   startedAt      DateTime @default(now())
   endedAt        DateTime?
   status         ExecutionStatus @default(PENDING)
-  nodeExecutions NodeExecutiom[]
+  nodeExecutions NodeExecution[]
 }
 
-model NodeExecutiom {
+model NodeExecution {
   id          String @id @default(cuid())
   executionId String
   nodeId      String
