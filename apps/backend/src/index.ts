@@ -5,16 +5,22 @@ import credentialRouter from "./routes/credentialRoutes.js";
 import workflowRouter from "./routes/workflowRouter.js";
 import webhookRouter from "./routes/webhookRoutes.js";
 import executionRouter from "./routes/executionRoutes.js";
+import triggerRouter from "./routes/triggerRoutes.js";
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+
 app.use("/api/auth", authRouter);
 app.use("/api/credentials", credentialRouter);
 app.use("/api/workflows", workflowRouter);
 app.use("/api/webhook", webhookRouter);
-app.use("api/execute", executionRouter);
+app.use("/api/execute", executionRouter);
+app.use("/api/v1/availableTrigger", triggerRouter);
 
 
-app.listen(3000, () => "Server running @:3000");
+
+app.listen(3000, () => {
+  console.log("Server running @ :3000");
+});

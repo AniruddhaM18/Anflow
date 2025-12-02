@@ -3,7 +3,7 @@ import { createTrigger, getAllTriggers } from "../controller/triggerController.j
 
 const triggerRouter : Router = Router();
 
-triggerRouter.post("/trigger/", createTrigger);
-triggerRouter.get("/trigger/", getAllTriggers);
+triggerRouter.post("/", createTrigger);
+triggerRouter.get("/", getAllTriggers);
 
 export default triggerRouter
