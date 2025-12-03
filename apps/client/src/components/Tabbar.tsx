@@ -1,7 +1,7 @@
 import logo from "../assets/logo.png"
 import { Button } from "./ui/button"
 export function Tabbar(){
-    return<div className="flex justify-normal bg-white fixed w-screen h-14">
+    return<div className="flex justify-normal bg-zinc-50 fixed w-screen h-14">
         <div className="ml-2 mt-2 bg-transparent">
         <img src={logo} alt="logo" width={60} height={60} className="w-[60] h-auto -mt-2 -ml-2"></img>
         </div>
