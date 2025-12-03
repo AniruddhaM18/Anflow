@@ -1,12 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 
 declare global {
-  var prisma: PrismaClient | undefined;
+  // eslint-disable-next-line no-var
+  var prismaClientGlobal: PrismaClient | undefined;
 }
 
-export const prismaClient = global.prisma ?? new PrismaClient();
+// Create or reuse global cached instance
+export const prismaClient =
+  globalThis.prismaClientGlobal ??
+  new PrismaClient({
+    log: ["query"], // optional
+  });
 
+// Cache in dev mode
 if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
+  globalThis.prismaClientGlobal = prismaClient;
 }
-export * from "@prisma/client"
+
+// Re-export Prisma models/types
+export * from "@prisma/client";
