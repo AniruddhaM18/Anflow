@@ -17,7 +17,7 @@ export const CredentialDialog = ({
 }: any) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="font-vietnam">
         <DialogHeader>
           <DialogTitle>Create {app} Credential</DialogTitle>
           <DialogDescription>Add a new credential</DialogDescription>
@@ -33,7 +33,7 @@ export const CredentialDialog = ({
           {app === "telegram" && <TgCredentials onDataChange={setCredData} />}
           {app === "resend" && <ResendCredential onDataChange={setCredData} />}
 
-          <Button className="w-full bg-orange-500" onClick={onCreate} disabled={creating}>
+          <Button className="w-full bg-corporateBlue hover:bg-corporateBlue/90" onClick={onCreate} disabled={creating}>
             {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Credential"}
           </Button>
         </div>

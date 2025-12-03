@@ -8,7 +8,7 @@ const ResendCredential = ({onDataChange}: {onDataChange: (state : {} )=>void }) 
         onDataChange({apikey})
     },[apikey,onDataChange])
   return (
-    <div className="font-inter flex flex-col gap-2 mb-5">
+    <div className="font-vietnam flex flex-col gap-2 mb-5">
       <div className="text-center">
         Sign Up at{" "}
         <a href="https://resend.com/home" target="_blank" className="underline text-black dark:text-white">

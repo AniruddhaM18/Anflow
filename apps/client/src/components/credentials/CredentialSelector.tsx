@@ -17,15 +17,15 @@ export const CredentialSelector = ({
   const items = credentials.filter((c) => c.application === appType);
 
   return (
-    <Select
+    <Select 
       value={value || ""}
       onValueChange={(val) => {
         if (val === "__add__") return onAdd();
         onChange(val);
       }}
     >
-      <SelectTrigger>
-        <SelectValue placeholder="Select Credential" />
+      <SelectTrigger className="font-vietnam">
+        <SelectValue   placeholder="Select Credential" />
       </SelectTrigger>
       <SelectContent>
         {items.map((c) => (
@@ -33,7 +33,7 @@ export const CredentialSelector = ({
             {c.name}
           </SelectItem>
         ))}
-        <SelectItem value="__add__">+ Add Credential…</SelectItem>
+        <SelectItem className="font-vietnam" value="__add__">+ Add Credential…</SelectItem>
       </SelectContent>
     </Select>
   );
