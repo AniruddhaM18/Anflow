@@ -5,7 +5,6 @@ import SignupPage from './pages/Signup';
 import SigninPage from './pages/Signin';
 import { Dashboard } from './pages/Dashboard';
 import { FlowPage } from './pages/Flow';
-import WorkflowPage from './pages/draft';
 // import { Workflow } from './pages/Workflow';
 
 function App() {
@@ -19,8 +18,6 @@ function App() {
       <Route element={<SigninPage />} path='/signin' />
       <Route element={<Dashboard />} path='/dashboard' />
       <Route element={<FlowPage />} path='/flow' />
-      <Route element={<WorkflowPage />} path='/draft' />
-
     </Routes>
     </BrowserRouter>
    
