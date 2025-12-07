@@ -7,6 +7,45 @@ body {
   font-family: "Be Vietnam Pro";
 }
 
+.gradient-button {
+    background: linear-gradient(360deg, #1B1B20 0%, #1B1B20 50%, #222229 100%);
+    color: #989899;
+    text-shadow: 0px 0.52px 1.05px 0px rgba(0, 0, 0, 0.12), 0px 1px 2px 0px rgba(0, 0, 0, 0.24), 0px 0.5px 1px 0px rgba(0, 0, 0, 0.4) inset;
+
+    box-shadow:
+        inset 0 1px 2px -1px rgba(255, 255, 255, 0.1),
+        inset 0 0 1px rgba(0, 0, 0, 0.05),
+        inset 0 -1px 0.5px rgba(0, 0, 0, 0.02),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.5);
+
+
+    border: 1px solid transparent;
+    border-top-color: #4B4C4D;
+    outline: 1px solid black;
+    backdrop-filter: blur(40px);
+    transition: all 120ms ease-out;
+
+}
+
+.gradient-button:hover {
+    background: linear-gradient(180deg, #16161A 0%, #1E1E24 100%);
+
+    color: white;
+    backdrop-filter: blur(40.73px);
+    transition: all 120ms ease-out;
+    border: 1px solid transparent;
+    border-top: rgba(255, 255, 255, 0.03) 0%;
+    border-bottom: rgba(255, 255, 255, 0.03) 100%;
+
+    box-shadow:
+        inset 0 0 1px rgba(0, 0, 0, 0.05),
+        inset 0 -1px 0.5px rgba(0, 0, 0, 0.02),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.32);
+}
+
 @theme{
   --color-pureWhite: #FFFFFF;
   --color-corporateBlue: #3C83F6;

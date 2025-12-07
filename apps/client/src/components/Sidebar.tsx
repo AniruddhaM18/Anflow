@@ -13,6 +13,13 @@ export function Sidebar(){
         <button onClick={() => setOpen(!open)}>
             <PiSidebarSimpleDuotone className="size-6 m-3 text-floral/80" />
         </button>
+        </div >
+        <div className={`${open ? "block" : "hidden"} m-2`}>
+
+              <button className="gradient-button p-2 rounded-sm font-vietnam"> 
+            Aniruddha
+        </button>
         </div>
+  
     </div>
 }

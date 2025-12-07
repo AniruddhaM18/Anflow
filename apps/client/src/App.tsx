@@ -3,8 +3,8 @@ import './App.css'
 import { Landing } from './pages/Landing';
 import SignupPage from './pages/Signup';
 import SigninPage from './pages/Signin';
-import { Dashboard } from './pages/Dashboard';
-import { FlowPage } from './pages/Flow';
+import { Workflow } from './pages/Workflow';
+import DashBoardPage from './pages/Dashboard';
 // import { Workflow } from './pages/Workflow';
 
 function App() {
@@ -16,11 +16,10 @@ function App() {
       <Route element={<Landing />} path='/' />
       <Route element={<SignupPage />} path='/signup' />
       <Route element={<SigninPage />} path='/signin' />
-      <Route element={<Dashboard />} path='/dashboard' />
-      <Route element={<FlowPage />} path='/flow' />
+      <Route element={<Workflow />} path='/workflow' />
+      <Route element={<DashBoardPage />} path='/dashboard' />
     </Routes>
     </BrowserRouter>
-   
     </>
   )
 }
