@@ -27,6 +27,8 @@ import { Loader2 } from "lucide-react";
 import ExecutionsCards from "../components/ExecutionsCard";
 import { WorkflowCards } from "../components/WorkflowCard";
 import { BACKEND_URL } from "../lib/config";
+import type { Credential as UICredential } from "../components/credentials/useCredentials";
+
 
 const demoApplications = [
   { key: "telegram", name: "Telegram" },
@@ -53,7 +55,7 @@ const DashBoardPage = () => {
   const [selectedApp, setSelectedApp] = useState("");
   const [credName, setCredName] = useState("");
   const [credData, setCredData] = useState({});
-  const [credentials, setCredentials] = useState<Credential[]>([]);
+const [credentials, setCredentials] = useState<UICredential[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [workflows, setWorkflows] = useState([]);
@@ -118,37 +120,40 @@ const DashBoardPage = () => {
     toast.success("Workflow deleted successfully!");
   };
 
-  const fetchAllCredentials = async () => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/credentials`);
-      const data = response.data;
+ const fetchAllCredentials = async () => {
+  try {
+    const response = await axios.get(`${BACKEND_URL}/credentials`);
+    const data = response.data;
 
-      if (!data.success) {
-        console.log(data.error);
-        setLoading(false);
-        return;
-      }
-
-      const mapped = data.credentials.map((c: Credential) => ({
-        id: c.id,
-        title: c.name,
-        platform: c.application,
-        data: c.data,
-        updatedAt: c.updated_at,
-      }));
-
-      setCredentials(
-        mapped.sort(
-          (a: any, b: any) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        )
-      );
-    } catch (e) {
-      console.log(e);
-    } finally {
+    if (!data.success) {
+      console.log(data.error);
       setLoading(false);
+      return;
     }
-  };
+
+    const mapped: UICredential[] = data.credentials.map((c: Credential) => ({
+      id: c.id,
+      userId: c.user_id,
+      title: c.name,
+      platform: c.application,
+      data: c.data,
+      createdAt: c.created_at,
+      updatedAt: c.updated_at,
+    }));
+
+    setCredentials(
+      mapped.sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+    );
+  } catch (e) {
+    console.log(e);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   const handleCreateCredentials = async () => {
