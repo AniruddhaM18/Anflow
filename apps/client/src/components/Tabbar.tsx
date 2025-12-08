@@ -6,7 +6,7 @@ export function Tabbar(){
         <img src={logo} alt="logo" width={60} height={60} className="w-[60] h-auto -mt-2 -ml-2"></img>
         </div>
         <div className="flex ml-auto">
-              <Button  className="bg-corporateBlue text-white p-4 rounded-md mt-3 mb-3 mr-3 ml-2 hover:bg-corporateBlue font-vietnam ">
+              <Button  className=" grad-button bg-corporateBlue text-white p-4 rounded-sm mt-3 mb-3 mr-3 ml-2 hover:bg-corporateBlue font-vietnam ">
             Workflow Editor
           </Button>
 

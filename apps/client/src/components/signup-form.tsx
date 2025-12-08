@@ -11,18 +11,47 @@ import {
 import { Input } from "./ui/input"
 import sideImage from "../assets/sign.png"
 import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import axios from "axios"
+import { BACKEND_URL } from "../lib/config"
+import { toast } from "sonner"
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignup(e: React.FormEvent){
+    e.preventDefault();
+    setLoading(true);
+
+    const form = e.target as HTMLFormElement;
+    const username = (form.elements.namedItem("name") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+
+    try{
+      await axios.post(`${BACKEND_URL}/api/auth/signup`, {
+        username,
+        email
+      });
+
+      toast.success("Magic link sent! Check your email.");
+      navigate("/check-email"); //need to create this page
+    }catch(err) {
+      toast.error("Signup Failed");
+    } finally {
+      setLoading(false)
+    }
+
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form className="p-6 md:p-8" onSubmit={handleSignup}>
             <FieldGroup className="font-vietnam">
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl  font-bold">Create your account</h1>
@@ -32,12 +61,13 @@ export function SignupForm({
               </div>
             <Field>
               <FieldLabel htmlFor="name">Username</FieldLabel>
-              <Input id="name" type="text" placeholder="Harkirat" required />
+              <Input id="name" name="name" type="text" placeholder="Harkirat" required />
               </Field>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="example@mail.com"
                   required
