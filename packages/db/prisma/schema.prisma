@@ -83,11 +83,11 @@ enum ExecutionStatus {
 }
 
 enum Actions {
-  TELEGRAM
-  GMAIL
+  telegram
+  gmail
 }
 
 enum Platform {
-  TELEGRAM
-  GMAIL
+  telegram
+  gmail
 }
