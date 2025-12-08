@@ -33,7 +33,10 @@ export async function createCredential(req: Request, res: Response) {
             })
         }
         return res.status(200).json({
-            message: "Credential successfully added"
+            success: true,  // Add this
+    message: "Credential successfully added",
+    credential: credential
+
         })
     } catch (err) {
         console.log(err);
@@ -81,5 +84,36 @@ export async function deleteCredential(req: Request, res: Response) {
         res.status(500).json({
             message: "Error deleting credential"
         })
+    }
+}
+
+
+
+export async function getAllCredentials(req: Request, res: Response) {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized: User ID missing"
+            });
+        }
+
+        const credentials = await prismaClient.credential.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" }
+        });
+
+        return res.status(200).json({
+            success: true,
+            count: credentials.length,
+            credentials: credentials
+        });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            message: "Error fetching credentials"
+        });
     }
 }
