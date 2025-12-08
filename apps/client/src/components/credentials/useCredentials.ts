@@ -1,74 +1,92 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { BACKEND_URL } from "../../lib/config"
+import { BACKEND_URL } from "../../lib/config";
 import { toast } from "sonner";
 
 export type Credential = {
   id: string;
-  user_id: string;
-  name: string;
-  application: string;
+  userId: string;
+  title: string;
+  platform: string;
   data: Record<string, any>;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export const useCredentials = () => {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [isCredDialogOpen, setIsCredDialogOpen] = useState(false);
   const [creatingCred, setCreatingCred] = useState(false);
-  const [credSelectedApp, setCredSelectedApp] = useState("");
-  const [credName, setCredName] = useState("");
+
+  const [credPlatform, setCredPlatform] = useState("");
+  const [credTitle, setCredTitle] = useState("");
   const [credData, setCredData] = useState<Record<string, any>>({});
-  const [pendingCredentialForNodeId, setPendingCredentialForNodeId] = useState<string | null>(null);
 
   const fetchAllCredentials = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/credentials`);
+      // FIXED ROUTE
+      const response = await axios.get(
+        `${BACKEND_URL}/api/credentials/credential/all`,
+        { withCredentials: true }
+      );
+
       const data = response.data;
+
       if (!data.success) return;
 
       setCredentials(
         data.credentials.sort(
           (a: Credential, b: Credential) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+            new Date(b.updatedAt).getTime() -
+            new Date(a.updatedAt).getTime()
         )
       );
-    } catch {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   useEffect(() => {
     fetchAllCredentials();
   }, []);
 
-  const openCreateCredentialDialog = (app: string, forNodeId?: string) => {
-    setCredSelectedApp(app);
-    setCredName("");
+  const openCreateCredentialDialog = (platform: string) => {
+    setCredPlatform(platform);
+    setCredTitle("");
     setCredData({});
-    if (forNodeId) setPendingCredentialForNodeId(forNodeId);
     setIsCredDialogOpen(true);
   };
 
   const handleCreateCredential = async () => {
     setCreatingCred(true);
-    try {
-      const payload = { name: credName, application: credSelectedApp, data: credData };
-      const response = await axios.post(`${BACKEND_URL}/credentials/create`, payload);
-      const data = response.data;
 
-      if (!data.success) {
-        toast.error(data.message);
+    try {
+      const payload = {
+        title: credTitle,
+        platform: credPlatform,
+        data: credData,
+      };
+
+      // FIXED ROUTE
+      const response = await axios.post(
+        `${BACKEND_URL}/api/credentials/credential/create`,
+        payload,
+        { withCredentials: true }
+      );
+
+      const result = response.data;
+
+      if (!result.success) {
+        toast.error(result.message || "Failed to create credential");
         return;
       }
 
-      toast.success("Credential created");
-
+      toast.success("Credential created successfully");
       await fetchAllCredentials();
       setIsCredDialogOpen(false);
-      setPendingCredentialForNodeId(null);
 
-    } catch {
-      toast.error("Failed to create credential");
+    } catch (e) {
+      toast.error("Error creating credential");
     } finally {
       setCreatingCred(false);
     }
@@ -78,15 +96,16 @@ export const useCredentials = () => {
     credentials,
     isCredDialogOpen,
     setIsCredDialogOpen,
-    creatingCred,
-    credSelectedApp,
-    credName,
+
+    credPlatform,
+    credTitle,
     credData,
-    setCredName,
+
+    setCredTitle,
     setCredData,
     openCreateCredentialDialog,
+
+    creatingCred,
     handleCreateCredential,
-    pendingCredentialForNodeId,
-    setPendingCredentialForNodeId,
   };
 };

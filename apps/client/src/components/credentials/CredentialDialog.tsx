@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import TgCredentials from "./TelegramCredential";
@@ -8,32 +14,36 @@ import { Loader2 } from "lucide-react";
 export const CredentialDialog = ({
   isOpen,
   onOpenChange,
-  app,
-  credName,
-  setCredName,
+  platform,
+  credTitle,
+  setCredTitle,
   setCredData,
   creating,
-  onCreate,
+  onCreate
 }: any) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="font-vietnam">
         <DialogHeader>
-          <DialogTitle>Create {app} Credential</DialogTitle>
+          <DialogTitle>Create {platform} Credential</DialogTitle>
           <DialogDescription>Add a new credential</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <Input
             placeholder="Credential Name"
-            value={credName}
-            onChange={(e) => setCredName(e.target.value)}
+            value={credTitle}
+            onChange={(e) => setCredTitle(e.target.value)}
           />
 
-          {app === "telegram" && <TgCredentials onDataChange={setCredData} />}
-          {app === "resend" && <ResendCredential onDataChange={setCredData} />}
+          {platform === "telegram" && <TgCredentials onDataChange={setCredData} />}
+          {platform === "resend" && <ResendCredential onDataChange={setCredData} />}
 
-          <Button className="w-full bg-corporateBlue hover:bg-corporateBlue/90" onClick={onCreate} disabled={creating}>
+          <Button
+            className="w-full bg-corporateBlue hover:bg-corporateBlue/90"
+            onClick={onCreate}
+            disabled={creating}
+          >
             {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Credential"}
           </Button>
         </div>

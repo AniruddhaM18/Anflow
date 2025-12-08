@@ -1,184 +1,194 @@
-import { useState } from "react"
-import { Card, CardContent, CardHeader } from "../ui/card"
-import { Button } from "../ui/button"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
-import { Copy, Edit, Trash2, Eye, EyeOff } from "lucide-react"
-import type { Credentials } from "../../pages/Home"
-import { Badge } from "../ui/badge"
-import { Input } from "../ui/input"
-import telegram from "../../assets/telegramIcon.png"
-import resend from "../../assets/resendIcon.svg"
+import { useState } from "react";
+import { Card, CardHeader, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../ui/accordion";
+import { Eye, EyeOff, Copy, Edit, Trash2 } from "lucide-react";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import type { Credential } from "./useCredentials";
 
-const logos = {
-    telegram : telegram,
-    resend : resend,
-   
-}
+import telegram from "../../assets/telegramIcon.png";
+import resend from "../../assets/resendIcon.svg";
+
+const logos: Record<string, string> = {
+  telegram,
+  resend,
+};
 
 interface CredentialsCardProps {
-  credentials: Credentials[]
-  onEdit?: (credential: Credentials) => void
-  onDelete?: (credentialId: string) => void
-  onSave?: (updated: Credentials) => void
+  credentials: Credential[];
+  onDelete?: (id: string) => void;
 }
 
-export function CredentialsCards({ credentials, onEdit, onDelete, onSave }: CredentialsCardProps) {
-  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({})
-  const [editingById, setEditingById] = useState<Record<string, boolean>>({})
-  const [editedValuesById, setEditedValuesById] = useState<Record<string, Record<string, string>>>({})
+export function CredentialsCards({ credentials, onDelete }: CredentialsCardProps) {
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [editingById, setEditingById] = useState<Record<string, boolean>>({});
+  const [editedValuesById, setEditedValuesById] =
+    useState<Record<string, Record<string, string>>>({});
 
-  const toggleKeyVisibility = (credentialId: string, keyType: string) => {
-    const key = `${credentialId}-${keyType}`
-    setVisibleKeys((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }))
-  }
+  const toggleVisibility = (credId: string, field: string) => {
+    const key = `${credId}-${field}`;
+    setVisibleKeys((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
+    navigator.clipboard.writeText(text);
+  };
 
-  const maskValue = (value: string) => {
-    if (value.length <= 8) return "•".repeat(value.length)
-    return value.substring(0, 4) + "•".repeat(value.length - 8) + value.substring(value.length - 4)
-  }
+  const maskValue = (v: string) => {
+    if (v.length <= 8) return "•".repeat(v.length);
+    return v.slice(0, 4) + "•".repeat(v.length - 8) + v.slice(-4);
+  };
 
-  const handleStartEdit = (credential: Credentials) => {
-    setEditingById((prev) => ({ ...prev, [credential.id]: true }))
+  const startEdit = (cred: Credential) => {
+    setEditingById((prev) => ({ ...prev, [cred.id]: true }));
     setEditedValuesById((prev) => ({
       ...prev,
-      [credential.id]: { ...(credential.data as Record<string, string>) },
-    }))
-    onEdit?.(credential)
-  }
+      [cred.id]: { ...(cred.data as Record<string, string>) },
+    }));
+  };
 
-  const handleFieldChange = (credentialId: string, key: string, value: string) => {
+  const saveEdit = (cred: Credential) => {
+    // UI–only update (no backend update route)
+    setEditingById((prev) => ({ ...prev, [cred.id]: false }));
+  };
+
+  const changeField = (credId: string, key: string, value: string) => {
     setEditedValuesById((prev) => ({
       ...prev,
-      [credentialId]: {
-        ...(prev[credentialId] || {}),
-        [key]: value,
-      },
-    }))
-  }
+      [credId]: { ...prev[credId], [key]: value },
+    }));
+  };
 
-  const handleSave = (credential: Credentials) => {
-    const updated: Credentials = {
-      ...credential,
-      data: {
-        ...(credential.data as Record<string, string>),
-        ...(editedValuesById[credential.id] || {}),
-      },
-      // updated_at: new Date().toISOString() as unknown as string,
-    }
-    setEditingById((prev) => ({ ...prev, [credential.id]: false }))
-    setEditedValuesById((prev) => ({ ...prev, [credential.id]: updated.data as Record<string, string> }))
-    onSave?.(updated)
-  }
+  const renderFields = (cred: Credential) => {
+    const isEditing = editingById[cred.id];
+    const entries = Object.entries(cred.data || {});
 
-  const renderCredentialData = (credential: Credentials) => {
-    const { data } = credential
-    const entries = Object.entries(data).filter(([_, value]) => value)
-
-    if (entries.length === 0) {
-      return <p className="text-muted-foreground text-sm">No credential data available</p>
-    }
-
-    const isEditing = !!editingById[credential.id]
+    if (entries.length === 0)
+      return <p className="text-muted-foreground text-sm">No stored fields</p>;
 
     return (
       <div className="space-y-3">
         {entries.map(([key, originalValue]) => {
-          const isVisible = !!visibleKeys[`${credential.id}-${key}`]
-          const currentValue = (editedValuesById[credential.id]?.[key] ?? (originalValue as string)) as string
-          const displayValue = isVisible || isEditing ? currentValue : maskValue(currentValue)
+          const composite = `${cred.id}-${key}`;
+          const currentValue =
+            editedValuesById[cred.id]?.[key] ?? (originalValue as string);
+          const displayValue =
+            isEditing || visibleKeys[composite]
+              ? currentValue
+              : maskValue(currentValue);
+
           return (
-            <div key={key} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div
+              key={key}
+              className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium capitalize font-inter">{key.replace(/([A-Z])/g, " $1").trim()}</span>
-                  <Badge variant="outline" className="text-xs font-inter">
-                    {key === "apikey" ? "API Key" : key === "accessToken" ? "Access Token" : "Business ID"}
+                  <span className="text-sm font-medium capitalize">
+                    {key.replace(/([A-Z])/g, " $1").trim()}
+                  </span>
+
+                  <Badge variant="outline" className="text-xs">
+                    Secret
                   </Badge>
                 </div>
-                <Input
-                  value={displayValue}
-                  onChange={(e) => handleFieldChange(credential.id, key, e.target.value)}
-                  disabled={!isEditing}
-                  type="text"
-                  className="font-mono"
-                />
-              </div>
+
+              <Input
+                value={displayValue}
+                disabled={!isEditing}
+                onChange={(e) => changeField(cred.id, key, e.target.value)}
+                className="font-mono"
+              />
+            </div>
+
               <div className="flex items-center gap-1 ml-3">
                 <Button
-                  variant="ghost"
                   size="sm"
-                  onClick={() => toggleKeyVisibility(credential.id, key)}
+                  variant="ghost"
                   className="h-8 w-8 p-0"
+                  onClick={() => toggleVisibility(cred.id, key)}
                 >
-                  {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {visibleKeys[composite] ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
+
                 <Button
-                  variant="ghost"
                   size="sm"
-                  onClick={() => copyToClipboard(currentValue)}
+                  variant="ghost"
                   className="h-8 w-8 p-0"
+                  onClick={() => copyToClipboard(currentValue)}
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-          )
+          );
         })}
       </div>
-    )
-  }
+    );
+  };
 
-  if(credentials.length === 0){
+  if (credentials.length === 0)
     return (
-      <div className="h-[600px] w-full flex justify-center items-center">
-        <div className="font-kode font-bold text-xl">No Credentials Yet! Create Credentials Now!</div>
+      <div className="h-[600px] flex items-center justify-center">
+        <p className="font-kode font-bold text-xl">
+          No Credentials Yet — Create One!
+        </p>
       </div>
-    )
-  }
+    );
 
   return (
     <div className="space-y-2">
-      {credentials.map((credential) => (
-        <Card key={credential.id} className="w-full">
+      {credentials.map((cred) => (
+        <Card key={cred.id}>
           <CardHeader className="pb-1">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-4">
-                    <img src={logos[credential.application as keyof typeof logos]} height={40} width={40}/>
-                    <div>
-                  <h3 className="font-semibold text-lg font-kode">{credential.name}</h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <Badge variant="secondary" className="font-inter">{credential.application}</Badge>
+              <div className="flex items-center gap-4">
+                <img
+                  src={logos[cred.platform] ?? ""}
+                  className="h-10 w-10"
+                  alt=""
+                />
+
+                <div>
+                  <h3 className="font-kode text-lg font-semibold">
+                    {cred.title}
+                  </h3>
+
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary">{cred.platform}</Badge>
                     <span className="text-sm text-muted-foreground">
-                      Last Updated {new Date(credential.updated_at).toLocaleDateString()}
+                      Last updated{" "}
+                      {new Date(cred.updatedAt).toLocaleDateString()}
                     </span>
-                  </div>
                   </div>
                 </div>
               </div>
+
               <div className="flex items-center gap-2">
-                {editingById[credential.id] ? (
-                  <Button variant="default" size="sm" onClick={() => handleSave(credential)} className="h-8">
+                {editingById[cred.id] ? (
+                  <Button size="sm" onClick={() => saveEdit(cred)}>
                     Save
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => handleStartEdit(credential)} className="h-8">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => startEdit(cred)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" /> Edit
                   </Button>
                 )}
+
                 <Button
-                  variant="outline"
                   size="sm"
-                  onClick={() => onDelete?.(credential.id)}
-                  className="h-8 text-destructive hover:text-destructive"
+                  variant="outline"
+                  className="text-destructive"
+                  onClick={() => onDelete?.(cred.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Delete
@@ -186,18 +196,22 @@ export function CredentialsCards({ credentials, onEdit, onDelete, onSave }: Cred
               </div>
             </div>
           </CardHeader>
+
           <CardContent className="pt-0">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value={credential.id} className="border-none">
-                <AccordionTrigger className="hover:no-underline py-1">
-                  <span className="text-sm font-kode font-extrabold text-orange-500">View Credentials</span>
+            <Accordion type="single" collapsible>
+              <AccordionItem value={cred.id} className="border-none">
+                <AccordionTrigger className="py-1">
+                  <span className="text-sm font-extrabold text-orange-500 font-kode">
+                    View Credentials
+                  </span>
                 </AccordionTrigger>
-                <AccordionContent className="pt-0.5">{renderCredentialData(credential)}</AccordionContent>
+
+                <AccordionContent>{renderFields(cred)}</AccordionContent>
               </AccordionItem>
             </Accordion>
           </CardContent>
         </Card>
       ))}
     </div>
-  )
+  );
 }

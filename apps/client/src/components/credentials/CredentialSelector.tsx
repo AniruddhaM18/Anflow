@@ -1,23 +1,29 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { type Credential } from "./useCredentials";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "../ui/select";
+import type { Credential } from "./useCredentials";
 
 export const CredentialSelector = ({
-  appType,
+  platform,
   value,
   credentials,
   onAdd,
   onChange
 }: {
-  appType: string;
+  platform: string;
   value: string;
   credentials: Credential[];
   onAdd: () => void;
   onChange: (v: string) => void;
 }) => {
-  const items = credentials.filter((c) => c.application === appType);
+  const filtered = credentials.filter((c) => c.platform === platform);
 
   return (
-    <Select 
+    <Select
       value={value || ""}
       onValueChange={(val) => {
         if (val === "__add__") return onAdd();
@@ -25,15 +31,17 @@ export const CredentialSelector = ({
       }}
     >
       <SelectTrigger className="font-vietnam">
-        <SelectValue   placeholder="Select Credential" />
+        <SelectValue placeholder="Select Credential" />
       </SelectTrigger>
+
       <SelectContent>
-        {items.map((c) => (
+        {filtered.map((c) => (
           <SelectItem key={c.id} value={c.id}>
-            {c.name}
+            {c.title}
           </SelectItem>
         ))}
-        <SelectItem className="font-vietnam" value="__add__">+ Add Credential…</SelectItem>
+
+        <SelectItem value="__add__">+ Add Credential…</SelectItem>
       </SelectContent>
     </Select>
   );
