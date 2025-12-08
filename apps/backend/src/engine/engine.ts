@@ -1,6 +1,7 @@
 import { ExecutionStatus, prismaClient } from "@repo/db";
 import TelegramBot from "node-telegram-bot-api";
 import { Resend } from "resend";
+import { executionEvents } from "../index.js";
 
 
 async function getCredential(data: any){
@@ -26,9 +27,20 @@ export async function runEngine(workflowId: string, nodes: any, executionId: str
         return;
     }
 
+    let triggerSuccessEmitted = false;
+
     for(const node of actionNodes) {
         const { id: nodeId, data } = node;
         const credentialData = await getCredential(data);
+                // Emit start event for node
+        executionEvents.emit("update", { executionId, nodeId, status: "RUNNING", ts: Date.now() });
+
+        // Mark trigger as SUCCESS when the first action starts running
+        if (!triggerSuccessEmitted && triggerNodeId) {
+            executionEvents.emit("update", { executionId, nodeId: triggerNodeId, status: "SUCCESS", ts: Date.now() });
+            triggerSuccessEmitted = true;
+        }
+
         switch(data.type) {
             case 'resend' : {
                 const emailData = await resendAction(data, credentialData, executionId, nodeId);
@@ -47,6 +59,8 @@ export async function runEngine(workflowId: string, nodes: any, executionId: str
             default: 
             console.log("NO ACTION EXECUTED !")
         }
+        // Emit success for node
+        executionEvents.emit("update", { executionId, nodeId, status: "SUCCESS", ts: Date.now() });
     }
 }
 
@@ -61,6 +75,8 @@ async function resendAction(data: any, credentialData: any, executionId: string,
         }
     })
     if(!nodeExecution){
+        // Emit FAILED if we cannot even create the node execution row
+        executionEvents.emit("update", { executionId, nodeId, status: "FAILED", ts: Date.now(), error: "Failed to create node execution" });
         return {error: "Failed to create node execution", success: false}
     }
     console.log("Executing resend", data)
@@ -92,6 +108,7 @@ async function resendAction(data: any, credentialData: any, executionId: string,
                     error: "body is required"
                 }
             })
+            executionEvents.emit("update", { executionId, nodeId, status: "FAILED", ts: Date.now(), error: "Body is required" });
             return {success: false, error: "body is required"}
         }
         body = response.output as string;
@@ -115,6 +132,7 @@ async function resendAction(data: any, credentialData: any, executionId: string,
                 error: error.message
             }
         })
+        executionEvents.emit("update", { executionId, nodeId, status: "FAILED", ts: Date.now(), error: error.message });
         return {success: false, error: error.message}
     }
     const updatedNodeExecution = await prismaClient.nodeExecution.update({
@@ -145,6 +163,7 @@ async function telegramAction(data: any, credentialData: any, executionId: strin
         }
     })
     if(!nodeExecution) {
+        executionEvents.emit("update", { executionId, nodeId, status: "FAILED", ts: Date.now(), error: "Failed to create node execution" });
         return {error: "Failed to create node execution", success: false }
     }
     console.log("Execution created", data)
@@ -176,6 +195,7 @@ async function telegramAction(data: any, credentialData: any, executionId: strin
                     error: "Message is required"
                 }
             })
+            executionEvents.emit("update", { executionId, nodeId, status: "FAILED", ts: Date.now(), error: "Body is required" });
             return { success: false, error: "Message is required"}
         }
         message = response.output as string;
@@ -196,6 +216,7 @@ async function telegramAction(data: any, credentialData: any, executionId: strin
                 error: "Failed to send message"
             }
         })
+        executionEvents.emit("update", { executionId, nodeId, status: "FAILED", ts: Date.now(), error: "Failed to send message" });
         return {error: "Failed to send message", success: false}
     }
 
@@ -209,7 +230,7 @@ async function telegramAction(data: any, credentialData: any, executionId: strin
             output: telegramData as any
         }
     })
-    if(!nodeExecution) {
+    if(!updatedExecution) {
         return { error: "Failed to execute node", success: false}
     }
     return { data: telegramData, success: true}
