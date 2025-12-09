@@ -17,6 +17,9 @@ async function getCredential(data: any){
             data: true
         }
     })
+    if (!credential) throw new Error("Credential not found in DB");
+
+    return credential.data;
 }
 
 const executedIds : string [] = [];
@@ -55,6 +58,8 @@ export async function runEngine(workflowId: string, nodes: any, executionId: str
                 if(!telegramData.success){
                     throw new Error("Telegram Execution Failed");
                 }
+                executedIds.push(nodeId);
+                break;
             }
             default: 
             console.log("NO ACTION EXECUTED !")
