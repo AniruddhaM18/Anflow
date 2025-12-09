@@ -84,10 +84,10 @@ enum ExecutionStatus {
 
 enum Actions {
   telegram
-  gmail
+  resend //means resend
 }
 
 enum Platform {
   telegram
-  gmail
+  resend //means resend
 }
