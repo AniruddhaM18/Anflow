@@ -13,8 +13,12 @@ declare global{
     }
 }
 
+
+
 export function authMiddleware(req: Request, res: Response, next: NextFunction){
     try{
+
+        
         //get token from headers
         const token = req.cookies.sessionToken || req.headers.authorization?.replace('Bearer ', '');
         if(!token){
@@ -43,4 +47,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction){
             message: "Invalid of expired token"
         })
     }
+    console.log("Cookies at auth:", req.cookies);
+console.log("Picked token:", req.cookies.sessionToken);
+
 }
