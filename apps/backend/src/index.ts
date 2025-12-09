@@ -40,7 +40,7 @@ app.use(cors({
 
 app.use("/api/auth", authRouter);
 app.use("/api/credentials", credentialRouter);
-app.use("/api/workflows", workflowRouter);
+app.use("/api", workflowRouter);
 app.use("/api/webhook", webhookRouter);
 app.use("/api/execute", executionRouter);
 app.use("/api/availableTrigger", triggerRouter);

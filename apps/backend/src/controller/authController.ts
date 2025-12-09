@@ -150,7 +150,7 @@ export async function callback(req: Request, res: Response) {
         });
 
         // ---- Redirect directly to dashboard ----
-        return res.redirect(`${APP_URL}/dashboard`);
+        return res.redirect(`${APP_URL}/auth/success`);
 
     } catch (err) {
         console.log(err);
