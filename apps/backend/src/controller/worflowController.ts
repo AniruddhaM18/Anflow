@@ -1,18 +1,25 @@
 import { prismaClient } from "@repo/db";
 import { Request, Response } from "express";
+import { success } from "zod";
+import { tr } from "zod/locales";
 
 export async function createWorkflow(req: Request, res: Response) {
     try {
         const { title, isEnabled, flow, nodes, edges } = req.body;
         const userId = req.user?.id;
 
-        if (!title || !isEnabled || !flow) {
-            return res.status(401).json({
+        if (!title || !flow) {
+            return res.status(400).json({
+                success: false,
                 message: "Inputs incomplete/ invalid"
             })
         }
-        
 
+        if (typeof isEnabled !== "boolean") {
+            return res.status(400).json({ success: false, message: "isEnabled must be boolean" });
+        }
+
+        //to make userId valid below
         if (!userId) throw new Error("User ID is required");
 
         const workflow = await prismaClient.workflow.create({
@@ -27,12 +34,14 @@ export async function createWorkflow(req: Request, res: Response) {
         })
         if (!workflow) {
             return res.status(403).json({
+                success: false,
                 message: "Error creating workflow"
             })
         }
-
         res.status(200).json({
-            message: "Successfully created workflow at id: "
+            success: true,
+            message: "Successfully created workflow",
+            workflow
         })
     } catch (err) {
         console.log(err);
@@ -49,6 +58,7 @@ export async function getWorkflow(req: Request, res: Response) {
 
         if (!workflowId) {
             return res.status(401).json({
+                success: false,
                 message: "Please provide workflowId"
             })
         }
@@ -70,12 +80,14 @@ export async function getWorkflow(req: Request, res: Response) {
 
         if (!workflow) {
             return res.status(402).json({
+                succes: false,
                 message: "Workflow not found"
             })
         }
 
         res.status(200).json({
-            message: "Workflow is :", workflow
+            success: true,
+            workflow
         })
     } catch (err) {
         console.log(err);
@@ -108,11 +120,13 @@ export async function getAllWorkflows(req: Request, res: Response) {
 
         if (!allWorkflows) {
             return res.status(402).json({
+                success: false,
                 message: "Workflows not found"
             })
         }
 
         res.status(200).json({
+            success: true,
             message: "All worflows :",
             allWorkflows
         })
@@ -124,18 +138,19 @@ export async function getAllWorkflows(req: Request, res: Response) {
     }
 }
 
-export async function updateWorkflow(req: Request, res: Response){
-    try{
+export async function updateWorkflow(req: Request, res: Response) {
+    try {
         const workflowId = req.params.id;
         const { title, isEnabled, flow } = req.body;
         const userId = req.user?.id;
-        
+
         const existing = await prismaClient.workflow.findFirst({
-            where: {id: workflowId, userId}
+            where: { id: workflowId, userId }
         })
 
-        if(!existing){
+        if (!existing) {
             return res.status(402).json({
+                success: false,
                 message: "Workflow doesn't exist"
             })
         }
@@ -155,19 +170,20 @@ export async function updateWorkflow(req: Request, res: Response){
         });
 
         res.status(200).json({
+            success: true,
             message: "workflow updated successfully",
-            updated
+            workflow: updated
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.status(500).json({
             message: "Error updating workflow"
         })
     }
-} 
+}
 
-export async function deleteWorkflow(req: Request, res: Response){
-    try{
+export async function deleteWorkflow(req: Request, res: Response) {
+    try {
         const workflowId = req.params.id;
         const userId = req.user?.id;
 
@@ -176,21 +192,23 @@ export async function deleteWorkflow(req: Request, res: Response){
                 id: workflowId, userId
             }
         })
-        if(!existing){
+        if (!existing) {
             return res.status(402).json({
+                success: false,
                 message: "Workflow not found"
             })
         }
 
-        const deleted = await prismaClient.workflow.delete({
-            where: {id: workflowId}
+        await prismaClient.workflow.delete({
+            where: { id: workflowId }
         })
 
         res.status(200).json({
+            success: true,
             message: "Worlflow deleted successfully",
             workflowId
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.status(500).json({
             message: "Error deleting workflow"
