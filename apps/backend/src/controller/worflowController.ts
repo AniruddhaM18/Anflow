@@ -128,7 +128,7 @@ export async function getAllWorkflows(req: Request, res: Response) {
         res.status(200).json({
             success: true,
             message: "All worflows :",
-            allWorkflows
+            workflows: allWorkflows
         })
     } catch (err) {
         console.log(err);
