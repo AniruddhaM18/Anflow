@@ -26,12 +26,14 @@ export async function execute(req: Request, res: Response) {
 
         if (!workflow) {
             return res.status(404).json({
+                success: false,
                 message: "Workflow not found"
             });
         }
 
         if (!workflow.isEnabled) {
             return res.status(403).json({
+                success: false,
                 message: "Workflow not enabled"
             });
         }
@@ -49,6 +51,7 @@ export async function execute(req: Request, res: Response) {
         runExecution(workflowId, nodes, execution.id);
 
         return res.status(200).json({
+            success: true,
             message: "Workflow execution started",
             executionId: execution.id
         });
@@ -139,25 +142,32 @@ export async function getExecution(req: Request, res: Response) {
                     }
                 }
             },
-            orderBy: {
-                endedAt: "desc"
-            }
+            orderBy: [
+                { endedAt: "desc" },
+                { startedAt: "desc" }
+            ]
         });
 
-        if (!executions) {
-            return res.status(404).json({
-                message: "Execution not found"
+        // findMany never returns null
+        if (executions.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No executions found",
+                executions: []
             });
         }
 
         return res.status(200).json({
+            success: true,
             message: "Execution fetched successfully",
             executions
         });
 
     } catch (err) {
+        console.error(err);
         return res.status(500).json({
-            message: "Error while fetching workflows"
+            success: false,
+            message: "Error while fetching executions"
         });
     }
 }

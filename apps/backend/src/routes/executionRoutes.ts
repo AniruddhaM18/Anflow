@@ -4,8 +4,7 @@ import { execute, getExecution } from "../controller/executionController.js";
 
 const executionRouter: Router = Router();
 
-executionRouter.post("/", authMiddleware, execute);
-
-executionRouter.post("/", authMiddleware, getExecution);
+executionRouter.post("/run", authMiddleware, execute);
+executionRouter.get("/all", authMiddleware, getExecution);
 
 export default executionRouter;
