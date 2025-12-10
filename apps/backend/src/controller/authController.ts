@@ -190,4 +190,9 @@ export async function getMe(req: Request, res: Response) {
     }
 }
 
-
+export async function logout(req: Request, res: Response){
+    res.clearCookie("sessionToken");
+    res.json({
+        message: "user logged out"
+    })
+}
