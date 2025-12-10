@@ -1,7 +1,5 @@
 import { prismaClient } from "@repo/db";
 import { Request, Response } from "express";
-import { success } from "zod";
-import { tr } from "zod/locales";
 
 export async function createWorkflow(req: Request, res: Response) {
     try {
@@ -111,7 +109,9 @@ export async function getAllWorkflows(req: Request, res: Response) {
                 isEnabled: true,
                 nodes: true,
                 edges: true,
-                flow: true
+                flow: true,
+                createdAt: true,
+                updatedAt: true
             },
             orderBy: {
                 updatedAt: "desc"
