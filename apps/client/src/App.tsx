@@ -5,7 +5,8 @@ import SignupPage from './pages/Signup';
 import SigninPage from './pages/Signin';
 import { Workflow } from './pages/Workflow';
 import DashBoardPage from './pages/Dashboard';
-// import { Workflow } from './pages/Workflow';
+import { CheckEmail } from './pages/CheckEmail';
+import { AuthSuccess } from './pages/AuthSuccess';
 
 function App() {
 
@@ -17,7 +18,11 @@ function App() {
       <Route element={<SignupPage />} path='/signup' />
       <Route element={<SigninPage />} path='/signin' />
       <Route element={<Workflow />} path='/workflow' />
+      <Route element={<Workflow />} path='/workflows/:id' />
       <Route element={<DashBoardPage />} path='/dashboard' />
+      <Route element={<CheckEmail />} path='/check-email' />
+      <Route element={<AuthSuccess />} path="/auth/success" />
+
     </Routes>
     </BrowserRouter>
     </>
