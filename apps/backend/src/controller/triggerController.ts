@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 export async function createTrigger(req: Request, res: Response){
     try{
         const { name, type, description } = req.body;
-        if(! name || type || description){
+        if(!name || !type || !description){
             return res.status(401).json({
                 message: "Incorrect inputs"
             })
