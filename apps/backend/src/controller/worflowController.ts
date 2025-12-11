@@ -141,30 +141,28 @@ export async function getAllWorkflows(req: Request, res: Response) {
 export async function updateWorkflow(req: Request, res: Response) {
     try {
         const workflowId = req.params.id;
-        const { title, isEnabled, flow } = req.body;
+        const { title, isEnabled, flow, nodes, edges } = req.body;
         const userId = req.user?.id;
 
         const existing = await prismaClient.workflow.findFirst({
             where: { id: workflowId, userId }
-        })
+        });
 
         if (!existing) {
             return res.status(402).json({
                 success: false,
                 message: "Workflow doesn't exist"
-            })
+            });
         }
 
         const updated = await prismaClient.workflow.update({
-            where: {
-                id: workflowId
-            },
+            where: { id: workflowId },
             data: {
-                title: title,
-                isEnabled: isEnabled,
-                nodes: true,
-                edges: true,
-                flow: flow,
+                title,
+                isEnabled,
+                nodes,
+                edges,
+                flow,
                 updatedAt: new Date()
             }
         });
@@ -173,14 +171,16 @@ export async function updateWorkflow(req: Request, res: Response) {
             success: true,
             message: "workflow updated successfully",
             workflow: updated
-        })
+        });
+
     } catch (err) {
         console.log(err);
         res.status(500).json({
             message: "Error updating workflow"
-        })
+        });
     }
 }
+
 
 export async function deleteWorkflow(req: Request, res: Response) {
     try {

@@ -1,7 +1,7 @@
 import { ExecutionStatus, prismaClient } from "@repo/db";
 import { Request, Response } from "express";
 import { runEngine } from "../engine/engine.js";
-import { executionEvents } from "../index.js";
+import { executionEvents } from "../events/executionEvents.js";
 
 export type Flow = {
     nodes: any;

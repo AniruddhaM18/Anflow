@@ -2,13 +2,15 @@ import { ExecutionStatus, prismaClient } from "@repo/db";
 import { Request, Response } from "express";
 import { Flow } from "./executionController.js";
 import { runEngine } from "../engine/engine.js";
-import { executionEvents } from "../index.js";   // <-- Added
+import { executionEvents } from "../events/executionEvents.js";
 
 export async function webHookTrigger(req: Request, res: Response) {
     try {
         const { workflowId } = req.params;
 
-        const workflow = await prismaClient.workflow.findUnique({
+        
+
+        const workflow = await prismaClient.workflow.findFirst({
             where: { id: workflowId },
             select: {
                 flow: true,
@@ -22,6 +24,13 @@ export async function webHookTrigger(req: Request, res: Response) {
                 message: "Workflow not found"
             });
         }
+
+        if (!workflow.isEnabled) {
+    return res.status(403).json({
+        message: "Workflow is disabled. Enable it to accept webhook executions."
+    });
+}
+
 
         const flow = workflow.flow as Flow;
         const { nodes } = flow;
