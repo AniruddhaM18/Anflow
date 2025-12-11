@@ -1,7 +1,7 @@
 import { ExecutionStatus, prismaClient } from "@repo/db";
 import TelegramBot from "node-telegram-bot-api";
 import { Resend } from "resend";
-import { executionEvents } from "../index.js";
+import { executionEvents } from "../events/executionEvents.js";
 
 
 async function getCredential(data: any){
