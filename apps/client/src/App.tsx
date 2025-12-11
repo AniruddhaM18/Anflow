@@ -17,7 +17,7 @@ function App() {
       <Route element={<Landing />} path='/' />
       <Route element={<SignupPage />} path='/signup' />
       <Route element={<SigninPage />} path='/signin' />
-      <Route element={<Workflow />} path='/workflow' />
+      <Route element={<Workflow />} path='/workflows' />
       <Route element={<Workflow />} path='/workflows/:id' />
       <Route element={<DashBoardPage />} path='/dashboard' />
       <Route element={<CheckEmail />} path='/check-email' />

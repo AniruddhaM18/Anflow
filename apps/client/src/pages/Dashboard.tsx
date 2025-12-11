@@ -55,13 +55,27 @@ const DashBoardPage = () => {
   const [selectedApp, setSelectedApp] = useState("");
   const [credName, setCredName] = useState("");
   const [credData, setCredData] = useState({});
-const [credentials, setCredentials] = useState<UICredential[]>([]);
+  const [credentials, setCredentials] = useState<UICredential[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [workflows, setWorkflows] = useState([]);
   const [loadingWorkflow, setLoadingWorkflow] = useState(false);
   const [executions, setExecutions] = useState([]);
   const [loadingExecutions, setLoadingExecutions] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get(`${BACKEND_URL}/api/auth/me`, { withCredentials: true })
+      .then((res) => {
+        // user authenticated, continue
+        setAuthLoading(false);
+      })
+      .catch(() => {
+        // user not logged in
+        navigate("/signin");
+      });
+  }, []);
 
   const [loading, setLoading] = useState(true);
 
@@ -74,99 +88,115 @@ const [credentials, setCredentials] = useState<UICredential[]>([]);
   const fetchAllExecutions = async () => {
     setLoadingExecutions(true);
     try {
-      const response = await axios.get(`${BACKEND_URL}/execute`);
+      const response = await axios.get(`${BACKEND_URL}/api/execute/all`, {
+        withCredentials: true,
+      });
 
       const data = response.data;
 
       if (!data.success) {
-        console.log(data.error);
+        console.error(data.message);
         return;
       }
-      setExecutions(data.executions);
+
+      const mapped = data.executions.map((e: any) => ({
+        id: e.id,
+        status: e.status,
+        startedAt: e.startedAt,
+        endedAt: e.endedAt,
+        workflow: {
+          id: e.workflow.id,
+          title: e.workflow.title,
+        },
+      }));
+
+      setExecutions(mapped);
     } catch (error) {
       console.log("Error fetching executions:", error);
     } finally {
       setLoadingExecutions(false);
     }
-  }
+  };
 
   const fetchAllWorkflows = async () => {
     setLoadingWorkflow(true);
     try {
-      const response = await axios.get(
-        `${BACKEND_URL}/workflows`
-      );
+      const response = await axios.get(`${BACKEND_URL}/api/workflow/all`, {
+        withCredentials: true,
+      });
+
+      const workflows = response.data.workflows || [];
+
+      const mapped = workflows.map((w: any) => ({
+        id: w.id,
+        name: w.title,
+        enabled: w.isEnabled,
+        created_at: w.createdAt,
+        updated_at: w.updatedAt,
+      }));
+
+      setWorkflows(mapped);
+    } catch (error) {
+      console.log("Error fetching workflows:", error);
+      setWorkflows([]);
+    } finally {
+      setLoadingWorkflow(false);
+    }
+  };
+
+
+  const fetchAllCredentials = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/credentials/credential/all`, {
+        withCredentials: true,
+      });
 
       const data = response.data;
 
       if (!data.success) {
         console.log(data.error);
+        setLoading(false);
         return;
       }
 
-      console.log(data.workflows);
-      setWorkflows(data.workflows);
+      const mapped: UICredential[] = data.credentials.map((c: Credential) => ({
+        id: c.id,
+        userId: c.user_id,
+        title: c.name,
+        platform: c.application,
+        data: c.data,
+        createdAt: c.created_at,
+        updatedAt: c.updated_at,
+      }));
 
-    } catch (error) {
-      console.log("Error fetching workflows:", error);
-
+      setCredentials(
+        mapped.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() -
+            new Date(a.updatedAt).getTime()
+        )
+      );
+    } catch (e) {
+      console.log(e);
     } finally {
-      setLoadingWorkflow(false);
-    }
-  }
-
-  const handleWorkflowDeleted = (workflowId: string) => {
-    setWorkflows(workflows.filter((workflow: any) => workflow.id !== workflowId));
-    toast.success("Workflow deleted successfully!");
-  };
-
- const fetchAllCredentials = async () => {
-  try {
-    const response = await axios.get(`${BACKEND_URL}/credentials`);
-    const data = response.data;
-
-    if (!data.success) {
-      console.log(data.error);
       setLoading(false);
-      return;
     }
-
-    const mapped: UICredential[] = data.credentials.map((c: Credential) => ({
-      id: c.id,
-      userId: c.user_id,
-      title: c.name,
-      platform: c.application,
-      data: c.data,
-      createdAt: c.created_at,
-      updatedAt: c.updated_at,
-    }));
-
-    setCredentials(
-      mapped.sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      )
-    );
-  } catch (e) {
-    console.log(e);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  };
 
   const handleCreateCredentials = async () => {
     setIsCreating(true);
     try {
       const payload = {
-        name: credName,
-        application: selectedApp,
+        title: credName,
+        platform: selectedApp,
         data: credData,
       };
-      // console.log(payload);
 
-      const response = await axios.post(`${BACKEND_URL}/credentials/create`, payload);
+      const response = await axios.post(
+        `${BACKEND_URL}/api/credentials/credential/create`,
+        payload,
+        { withCredentials: true }
+      );
 
       const data = response.data;
 
@@ -195,19 +225,62 @@ const [credentials, setCredentials] = useState<UICredential[]>([]);
   const handleDeleteCredential = async (id: string) => {
     try {
       const response = await axios.delete(
-        `${BACKEND_URL}/credentials/${id}`
+        `${BACKEND_URL}/credentials/${id}`,
+        { withCredentials: true }
       );
+
       const data = response.data;
       if (!data.success) {
         toast.error(data.message || "Delete failed");
         return;
       }
+
       setCredentials((prev) => prev.filter((c) => c.id !== id));
       toast.success(data.message);
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Delete failed");
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <Loader2 className="animate-spin text-corporateBlue" />
+      </div>
+    );
+  }
+
+  ///will write this later
+  async function handleWorkflowDeleted(workflowId: string) {
+    try {
+
+      const response = await axios.delete(`${BACKEND_URL}/api/workflow/${workflowId}`,
+        { withCredentials: true }
+      );
+      const data = response.data;
+
+      if (!data.success) {
+        toast.error(data.message || "Delete failed");
+        return;
+      }
+      toast.success("Workflow deleted successfully");
+
+      // Remove workflow from UI immediately
+      setWorkflows(
+        response.data.workflows.map((w: any) => ({
+          id: w.id,
+          name: w.title,
+          enabled: w.isEnabled,
+          updated_at: w.updatedAt,
+          created_at: w.createdAt
+        }))
+      );
+    } catch (err: any) {
+      console.error("Error deleting workflow:", err);
+      toast.error(err?.response?.data?.message || "Failed to delete workflow");
+    }
+  }
+
   return (
     <div className="m-16 mx-auto max-w-7xl w-full">
       <div className="flex justify-between">
@@ -221,7 +294,7 @@ const [credentials, setCredentials] = useState<UICredential[]>([]);
         </div>
         <div className="flex items-center gap-2 font-vietnam">
           <Button
-            onClick={() => navigate("/workflow")}
+            onClick={() => navigate("/workflows")}
             className="bg-corporateBlue hover:bg-corporateBlue/90 rounded-sm "
           >
             Create Workflow
@@ -287,6 +360,15 @@ const [credentials, setCredentials] = useState<UICredential[]>([]);
               </div>
             </DialogContent>
           </Dialog>
+          <Button
+            onClick={async () => {
+              await axios.post(`${BACKEND_URL}/api/auth/logout`, {}, { withCredentials: true });
+              navigate("/");
+            }}
+            className="bg-corporateBlue hover:bg-corporateBlue/90 rounded-sm"
+          >
+            Logout
+          </Button>
         </div>
       </div>
 
