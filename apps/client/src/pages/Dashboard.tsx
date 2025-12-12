@@ -282,13 +282,13 @@ const DashBoardPage = () => {
   }
 
   return (
-    <div className="m-16 mx-auto max-w-7xl w-full">
+    <div className="m-16 mx-auto max-w-7xl w-full font-vietnam,">
       <div className="flex justify-between">
         <div className="">
           <div className="text-xl font-bold font-vietnam text-corporateBlue">
             Dashboard
           </div>
-          <div className="font-inter">
+          <div className="font-vietnam">
             All the workflows, credentials and executions you have access to
           </div>
         </div>
@@ -303,7 +303,7 @@ const DashBoardPage = () => {
             <DialogTrigger asChild>
               <Button className="bg-corporateBlue hover:bg-corporateBlue/90 rounded-sm ">Create Credentials</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="font-vietnam">
               <DialogHeader>
                 <DialogTitle className="font-vietnam font-bold text-corporateBlue">
                   Select Application
@@ -317,18 +317,18 @@ const DashBoardPage = () => {
                   onValueChange={(value) => setSelectedApp(value)}
                   value={selectedApp}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full font-vietnam">
                     <SelectValue placeholder="Application" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="font-vietnam">
                     {applications.map((app) => (
                       <SelectItem key={app.key} value={app.key}>
-                        {app.name}
+                        {app.name} 
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="space-y-3 font-inter">
+                <div className="space-y-3 font-vietnam">
                   <Input
                     placeholder="Credential Name"
                     value={credName}
@@ -373,7 +373,7 @@ const DashBoardPage = () => {
       </div>
 
       <div className="mt-10 h-full w-full">
-        <Tabs defaultValue="workflows" className="font-inter">
+        <Tabs defaultValue="workflows" className="font-vietnam">
           <TabsList>
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
             <TabsTrigger value="credentials">Credentials</TabsTrigger>
