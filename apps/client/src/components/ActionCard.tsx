@@ -33,7 +33,7 @@ export function ActionCard({ action, onSelect }: ActionCardProps) {
             {logoSrc ? (
               <img src={logoSrc} alt={action.name} className="h-8 w-8 object-contain" />
             ) : (
-              <div className="text-sm font-kode font-bold text-orange-500">
+              <div className="text-sm font-vietnam font-bold text-corporateBlue">
                 <Bot className="w-6 h-6" />
               </div>
             )}
