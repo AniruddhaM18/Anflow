@@ -34,7 +34,7 @@ export const CredentialSelector = ({
         <SelectValue placeholder="Select Credential" />
       </SelectTrigger>
 
-      <SelectContent>
+      <SelectContent className="font-vietnam">
         {filtered.map((c) => (
           <SelectItem key={c.id} value={c.id}>
             {c.title}
