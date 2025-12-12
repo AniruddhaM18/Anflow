@@ -1,14 +1,10 @@
-import React from "react";
 import {
     CalendarIcon,
-    HomeIcon,
     MailIcon,
-    PencilIcon,
 } from "lucide-react";
 
 import { cn } from "../lib/utils";
 import { buttonVariants } from "./ui/button";
-import { Separator } from "./ui/separator";
 import {
     Tooltip,
     TooltipContent,
@@ -20,9 +16,9 @@ import { Dock, DockIcon } from "./ui/dock";
 export function DockDemo() {
 
     const Icons = {
-        calendar: (props) => <CalendarIcon {...props} />,
-        email: (props) => <MailIcon {...props} />,
-        linkedin: (props) => (
+        calendar: (props:any) => <CalendarIcon {...props} />,
+        email: (props:any) => <MailIcon {...props} />,
+        linkedin: (props:any) => (
             <svg viewBox="0 0 24 24" {...props}>
                 <path
                     fill="currentColor"
@@ -35,7 +31,7 @@ export function DockDemo() {
                 />
             </svg>
         ),
-        x: (props) => (
+        x: (props:any) => (
             <svg viewBox="0 0 24 24" {...props}>
                 <path
                     fill="currentColor"
@@ -44,7 +40,7 @@ export function DockDemo() {
                 />
             </svg>
         ),
-        youtube: (props) => (
+        youtube: (props:any) => (
             <svg viewBox="0 0 32 32" {...props}>
                 <path d="M29.41,9.26a3.5,3.5,0,0,0-2.47-2.47C24.76,6.2,16,6.2,16,6.2s-8.76,
         0-10.94.59A3.5,3.5,0,0,0,2.59,9.26,36.13,36.13,0,0,0,2,16a36.13,36.13,
@@ -53,7 +49,7 @@ export function DockDemo() {
         36.13,0,0,0,29.41,9.26ZM13.2,20.2V11.8L20.47,16Z" />
             </svg>
         ),
-        github: (props) => (
+        github: (props:any) => (
             <svg viewBox="0 0 24 24" {...props}>
                 <path
                     fill="currentColor"

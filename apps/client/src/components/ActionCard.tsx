@@ -1,7 +1,7 @@
 import { Card, CardContent } from "./ui/card"
 import telegram from "../assets/telegramIcon.png"
 import resend from "../assets/resendIcon.svg"
-import { Bot, BetweenHorizontalStart } from "lucide-react"
+import { Bot } from "lucide-react"
 
 export interface Action {
   id: string
@@ -29,7 +29,7 @@ export function ActionCard({ action, onSelect }: ActionCardProps) {
     >
       <CardContent className="p-4">
         <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 h-10 w-10 rounded-md bg-muted/50 flex items-center justify-center overflow-hidden">
+          <div className="shrink-0 h-10 w-10 rounded-md bg-muted/50 flex items-center justify-center overflow-hidden">
             {logoSrc ? (
               <img src={logoSrc} alt={action.name} className="h-8 w-8 object-contain" />
             ) : (

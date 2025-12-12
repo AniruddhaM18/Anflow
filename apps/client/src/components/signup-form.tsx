@@ -21,7 +21,7 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
 
   async function handleSignup(e: React.FormEvent){
     e.preventDefault();

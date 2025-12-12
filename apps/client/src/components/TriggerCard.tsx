@@ -42,9 +42,9 @@ export function TriggerCard({ trigger, onSelect }: TriggerCardProps) {
     onClick={() => onSelect?.(trigger)}>
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 mt-1">{getTriggerIcon(trigger.type)}</div>
+          <div className="shrink-0 mt-1">{getTriggerIcon(trigger.type)}</div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-vietnam text-zinc-700 font-semibold text-lg text-foreground mb-2">
+            <h3 className="font-vietnam text-zinc-700 font-semibold text-lg mb-2">
               {getTriggerDisplayName(trigger.name, trigger.type)}
             </h3>
             <p className="font-vietnam text-muted-foreground text-sm leading-relaxed">
