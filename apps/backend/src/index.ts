@@ -22,11 +22,14 @@ const allowedOrigins = [
     "http://localhost:5173",
     // "my-domain.com"
     "https://anflow.aniruddha.xyz",
+    "https://anflow.vercel.app"
 ].filter(Boolean);
 
 app.use(cors({
     credentials: true,
-    origin: allowedOrigins
+    origin: allowedOrigins,
+     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
 app.use("/api/auth", authRouter);
