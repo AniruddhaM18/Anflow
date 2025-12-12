@@ -190,14 +190,9 @@ export async function getMe(req: Request, res: Response) {
     }
 }
 
-export async function logout(req: Request, res: Response) {
-  res.clearCookie("sessionToken", {
-    httpOnly: true,
-    secure: false,     // MUST match login
-    sameSite: "lax",   // MUST match login
-    path: "/",         // MUST match login
-  });
-
-  return res.json({ message: "user logged out" });
+export async function logout(req: Request, res: Response){
+    res.clearCookie("sessionToken");
+    res.json({
+        message: "user logged out"
+    })
 }
-
