@@ -20,14 +20,13 @@ app.use(cookieParser());
 
 const allowedOrigins = [
     "http://localhost:5173",
-    // "my-domain.com"
     "https://api.anflow.aniruddha.xyz",
     "https://anflow.aniruddha.xyz",
 ].filter(Boolean);
 
 app.use(cors({
     credentials: true,
-    origin: true
+    origin: allowedOrigins
 }));
 
 // ------------------------------
