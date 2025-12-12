@@ -7,6 +7,7 @@ import { Workflow } from './pages/Workflow';
 import DashBoardPage from './pages/Dashboard';
 import { CheckEmail } from './pages/CheckEmail';
 import { AuthSuccess } from './pages/AuthSuccess';
+import { ProtectedRoute } from './pages/Auth/ProtectedRoute';
 
 function App() {
 
@@ -17,11 +18,35 @@ function App() {
       <Route element={<Landing />} path='/' />
       <Route element={<SignupPage />} path='/signup' />
       <Route element={<SigninPage />} path='/signin' />
-      <Route element={<Workflow />} path='/workflows' />
-      <Route element={<Workflow />} path='/workflows/:id' />
-      <Route element={<DashBoardPage />} path='/dashboard' />
       <Route element={<CheckEmail />} path='/check-email' />
       <Route element={<AuthSuccess />} path="/auth/success" />
+
+      <Route
+  path="/workflows"
+  element={
+    <ProtectedRoute>
+      <Workflow />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/workflows/:id"
+  element={
+    <ProtectedRoute>
+      <Workflow />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/dashboard"
+  element={
+    <ProtectedRoute>
+      <DashBoardPage />
+    </ProtectedRoute>
+  }
+/>
 
     </Routes>
     </BrowserRouter>
