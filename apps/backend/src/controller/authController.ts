@@ -142,13 +142,16 @@ export async function callback(req: Request, res: Response) {
         );
 
         // ---- Set cookie ----
-        res.cookie("sessionToken", sessionToken, {
-            httpOnly: true,
-            secure: false,       // set true in production
-            sameSite: "lax",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+// ---- Set cookie ----
+res.cookie("sessionToken", sessionToken, {
+    httpOnly: true,
+    secure: true,             
+    sameSite: "none",         
+    domain: ".aniruddha.xyz", 
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
+
 
         // ---- Redirect directly to dashboard ----
         return res.redirect(`${APP_URL}/auth/success`);
@@ -191,9 +194,16 @@ export async function getMe(req: Request, res: Response) {
     }
 }
 
-export async function logout(req: Request, res: Response){
-    res.clearCookie("sessionToken");
-    res.json({
-        message: "user logged out"
-    })
+export async function logout(req: Request, res: Response) {
+    const isProd = process.env.NODE_ENV === "production";
+
+    res.clearCookie("sessionToken", {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        domain: isProd ? ".aniruddha.xyz" : undefined,
+        path: "/",
+    });
+
+    res.json({ message: "user logged out" });
 }
