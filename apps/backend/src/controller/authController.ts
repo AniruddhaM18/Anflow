@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { SigninSchema, SignupSchema } from "../types.js";
 import { Resend } from "resend";
-import { RESEND_KEY, JWT_SECRET, APP_URL } from "../config.js";
+import { RESEND_KEY, JWT_SECRET, APP_URL, BACKEND_URL, } from "../config.js";
 import { prismaClient } from "@repo/db";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+
 
 const resend = new Resend(RESEND_KEY);
 
@@ -55,7 +56,7 @@ export async function signupController(req: Request, res: Response) {
         const token = jwt.sign({ type: "signup", email, username }, JWT_SECRET!, {
             expiresIn: "15m"
         });
-        const link = `http://localhost:3000/api/auth/callback?token=${token}`;
+        const link = `${BACKEND_URL}/api/auth/callback?token=${token}`;
         await sendMagicLink({ email, username, link, type: "signup" });
         res.status(200).json({
             message: "Magiclink send on mail"
@@ -91,7 +92,7 @@ export async function signinController(req: Request, res: Response) {
             expiresIn: "15m"
         });
 
-        const link = `http://localhost:3000/api/auth/callback?token=${token}`;
+        const link = `${BACKEND_URL}/api/auth/callback?token=${token}`;
         await sendMagicLink({
             type: "signin", 
             link, 
