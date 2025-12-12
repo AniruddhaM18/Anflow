@@ -16,15 +16,30 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+
+
 const allowedOrigins = [
     "http://localhost:5173",
     // "my-domain.com"
+    "https://api.anflow.aniruddha.xyz",
+    "https://anflow.aniruddha.xyz",
 ].filter(Boolean);
 
 app.use(cors({
     credentials: true,
     origin: true
 }));
+
+// ------------------------------
+//   Health Check Endpoint
+// ------------------------------
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        message: "API is running",
+        timestamp: new Date().toISOString()
+    });
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/credentials", credentialRouter);
