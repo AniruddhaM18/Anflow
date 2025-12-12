@@ -285,11 +285,11 @@ const DashBoardPage = () => {
     <div className="m-16 mx-auto max-w-7xl w-full font-vietnam,">
       <div className="flex justify-between">
         <div className="">
-          <div className="text-xl font-bold font-vietnam text-corporateBlue">
+          <div className="text-2xl font-bold font-vietnam text-corporateBlue">
             Dashboard
           </div>
           <div className="font-vietnam">
-            All the workflows, credentials and executions you have access to
+            All your workflows, credentials and executions
           </div>
         </div>
         <div className="flex items-center gap-2 font-vietnam">
