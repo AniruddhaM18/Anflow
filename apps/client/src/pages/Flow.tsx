@@ -18,21 +18,10 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import SlideToggle from "../components/ToggleSlider";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "../components/ui/sheet";
-import axios from "axios";
-import { toast } from "sonner";
-
-import { FlaskConical, Loader2, Plus, Copy, SheetIcon, SquarePower, Play } from "lucide-react";
+import { FlaskConical, Loader2, Plus, Copy, SquarePower, Play } from "lucide-react";
 import { TriggerCard, type Trigger } from "../components/TriggerCard";
 import { ActionCard } from "../components/ActionCard";
 import { ActionNode, TriggerNode } from "../components/CustomNodes";
-
 import {
   Dialog,
   DialogContent,
@@ -41,20 +30,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
-
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "../components/ui/sheet";
+import axios from "axios";
+import { toast } from "sonner";
 import { BACKEND_URL } from "../lib/config";
-
-// Credential system
+// --- Credential System ---
 import { useCredentials } from "../components/credentials/useCredentials";
 import { CredentialSelector } from "../components/credentials/CredentialSelector";
 import { CredentialDialog } from "../components/credentials/CredentialDialog";
 
+// Node type registry
 const nodeTypes = {
   trigger: TriggerNode,
   action: ActionNode,
 };
 
-// ⭐ NEW — Static trigger list (instead of fetching from backend)
+// Static trigger list 
 const STATIC_TRIGGERS: Trigger[] = [
   {
     id: "manual-trigger",
@@ -74,14 +65,19 @@ export const FlowPage = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [enable, setEnable] = useState(false);
+
   const [workflowName, setWorkflowName] = useState("");
+  const [savedWorkflowName, setSavedWorkflowName] = useState("");   // <<< ADDED
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
   const navigate = useNavigate();
   const { id } = useParams();
+
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance<Node, Edge> | null>(null);
   const [pendingViewport, setPendingViewport] = useState<any>(null);
 
+  // Node execution statuses
   const [nodeStatuses, setNodeStatuses] = useState<
     Record<string, "IDLE" | "RUNNING" | "SUCCESS" | "FAILED">
   >({});
@@ -100,45 +96,49 @@ export const FlowPage = () => {
     decorateNodesWithStatus();
   }, [nodeStatuses, decorateNodesWithStatus]);
 
+  // Node config dialog
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  // Credential hook
+  const updateForm = (k: string, v: any) =>
+    setFormData((prev) => ({ ...prev, [k]: v }));
+
+  // NEW Credential hook
   const {
     credentials,
     isCredDialogOpen,
     setIsCredDialogOpen,
     creatingCred,
-    credSelectedApp,
-    credName,
+
+    credPlatform,
+    credTitle,
     credData,
-    setCredName,
+    setCredTitle,
     setCredData,
     openCreateCredentialDialog,
     handleCreateCredential,
   } = useCredentials();
 
-  const saveFlow = useCallback(() => {
-    return rfInstance?.toObject();
-  }, [rfInstance]);
+  // Save flow
+  const saveFlow = useCallback(() => rfInstance?.toObject(), [rfInstance]);
 
-  // Picker modal state
+  // Picker modal
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerMode, setPickerMode] = useState<"trigger" | "action">("trigger");
 
-  // ⭐ SIMPLIFIED — no backend call
   const openPicker = (mode: "trigger" | "action") => {
     setPickerMode(mode);
     setIsPickerOpen(true);
   };
 
+  // ReactFlow handlers
   const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (chs) => setNodes((nds) => applyNodeChanges(chs, nds)),
     []
   );
   const onEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    (chs) => setEdges((eds) => applyEdgeChanges(chs, eds)),
     []
   );
   const onConnect = useCallback(
@@ -146,14 +146,14 @@ export const FlowPage = () => {
     []
   );
 
+  // Node click
   const onNodeClick = useCallback((_, node) => {
     setSelectedNode(node);
     setFormData((node.data as any)?.config || {});
     setIsConfigOpen(true);
   }, []);
 
-  const updateForm = (k: string, v: any) => setFormData((prev) => ({ ...prev, [k]: v }));
-
+  // Save config
   const handleSaveNodeConfig = () => {
     if (!selectedNode) return;
 
@@ -176,23 +176,22 @@ export const FlowPage = () => {
       setLoading(true);
 
       try {
-        const res = await axios.get(`${BACKEND_URL}/workflows/${id}`);
+        const res = await axios.get(`${BACKEND_URL}/api/workflow/${id}`, {
+          withCredentials: true,
+        });
 
-        if (!res.data.success) {
-          toast.error(res.data.message);
-          return;
-        }
+        if (!res.data.success) return toast.error(res.data.message);
 
         const wf = res.data.workflow;
 
-        setWorkflowName(wf.name || "");
-        setEnable(wf.enabled || false);
+        setWorkflowName(wf.title || "");
+        setSavedWorkflowName(wf.title || "");    // <<< ADDED
+        setEnable(wf.isEnabled ?? false);
 
         if (wf.flow) {
-          const flow = wf.flow;
-          setNodes(flow.nodes || []);
-          setEdges(flow.edges || []);
-          setPendingViewport(flow.viewport || null);
+          setNodes(wf.flow.nodes || []);
+          setEdges(wf.flow.edges || []);
+          setPendingViewport(wf.flow.viewport || null);
         }
       } catch {
         toast.error("Failed to fetch workflow");
@@ -204,46 +203,58 @@ export const FlowPage = () => {
     fetchWorkflow();
   }, [id]);
 
+  // Save workflow to backend
   const handleSaveWorkflow = async () => {
     setSaving(true);
     const flow = saveFlow();
 
     try {
       if (id) {
-        const res = await axios.put(`${BACKEND_URL}/workflows/${id}`, {
-          name: workflowName,
-          enabled: enable,
-          nodes,
-          edges,
-          flow,
-        });
+        const res = await axios.put(
+          `${BACKEND_URL}/api/workflow/${id}`,
+          {
+            title: workflowName,
+            isEnabled: enable,
+            nodes,
+            edges,
+            flow,
+          },
+          { withCredentials: true }
+        );
 
         if (!res.data.success) return toast.error(res.data.message);
+
         toast.success(res.data.message);
+        setSavedWorkflowName(workflowName);   // <<< ADDED
       } else {
-        const res = await axios.post(`${BACKEND_URL}/workflows/create`, {
-          name: workflowName,
-          enabled: enable,
-          nodes,
-          edges,
-          flow,
-        });
+        const res = await axios.post(
+          `${BACKEND_URL}/api/workflow/create`,
+          {
+            title: workflowName,
+            isEnabled: enable,
+            nodes,
+            edges,
+            flow,
+          },
+          { withCredentials: true }
+        );
 
         if (!res.data.success) return toast.error(res.data.message);
 
         toast.success(res.data.message);
+        setSavedWorkflowName(workflowName);   // <<< ADDED
         navigate(`/workflows/${res.data.workflow.id}`);
       }
     } catch {
       toast.error("Failed to save workflow");
     }
-
     setSaving(false);
   };
 
-  // Add node handlers
+  // Add trigger node
   const handleSelectTrigger = (trigger: Trigger) => {
     const newId = `t-${Date.now()}`;
+
     setNodes((prev) => [
       ...prev,
       {
@@ -257,8 +268,10 @@ export const FlowPage = () => {
     setIsPickerOpen(false);
   };
 
+  // Add action node
   const handleSelectAction = (action) => {
     const newId = `a-${Date.now()}`;
+
     setNodes((prev) => [
       ...prev,
       {
@@ -272,62 +285,109 @@ export const FlowPage = () => {
     setIsPickerOpen(false);
   };
 
-  const handleExecuteWorkflow = async () => {
-    setIsExecuting(true);
-
-    try {
-      const res = await axios.post(`${BACKEND_URL}/execute`, { workflowId: id });
-      const data = res.data;
-
-      if (!data.success) {
-        toast.error(data.message);
-        setIsExecuting(false);
-        return;
-      }
-
-      const statuses: any = {};
-      nodes.forEach((n) => (statuses[n.id] = "IDLE"));
-      setNodeStatuses(statuses);
-
-      const es = new EventSource(`${BACKEND_URL}/execute/stream`, { withCredentials: true });
-
-      es.onmessage = (ev) => {
-        try {
-          const evt = JSON.parse(ev.data);
-          if (evt.executionId !== data.executionId) return;
-          setNodeStatuses((prev) => ({ ...prev, [evt.nodeId]: evt.status }));
-        } catch {}
-      };
-
-      es.onerror = () => {
-        es.close();
-        setIsExecuting(false);
-      };
-    } finally {
-      setIsExecuting(false);
-    }
+  // Execute workflow
+  const getTriggerType = () => {
+    const triggerNode = nodes.find((n) => n.type === "trigger");
+    return triggerNode?.data?.type;
   };
 
-  if (loading) {
-    return (
-      <div className="m-16 mx-auto max-w-7xl w-full flex items-center justify-center h-[850px]">
-        <Loader2 className="animate-spin text-corporateBlue" />
-      </div>
-    );
-  }
+  const handleExecuteWorkflow = async () => {
+    if (!id) {
+      toast.error("Save the workflow before executing");
+      return;
+    }
 
-  // Render forms
+    const triggerType = getTriggerType();
+
+    if (triggerType === "webhook-trigger") {
+      const webhookUrl = `${BACKEND_URL}/api/webhook/${id}`;
+      console.log("Webhook listening at:", webhookUrl);
+
+      const es = new EventSource(`${BACKEND_URL}/api/v1/execute/stream`, {
+        withCredentials: true,
+      });
+
+      es.onmessage = (ev) => {
+        const evt = JSON.parse(ev.data);
+        setNodeStatuses((prev) => ({
+          ...prev,
+          [evt.nodeId]: evt.status,
+        }));
+      };
+
+      toast.success("Webhook armed! Waiting...");
+      return;
+    }
+
+    if (triggerType === "manual-trigger") {
+      setIsExecuting(true);
+
+      try {
+        const res = await axios.post(
+          `${BACKEND_URL}/api/execute/run`,
+          { workflowId: id },
+          { withCredentials: true }
+        );
+
+        const data = res.data;
+        if (!data.success) {
+          toast.error(data.message);
+          setIsExecuting(false);
+          return;
+        }
+
+        const statuses: Record<string, any> = {};
+        nodes.forEach((n) => (statuses[n.id] = "IDLE"));
+        setNodeStatuses(statuses);
+
+        const es = new EventSource(`${BACKEND_URL}/api/v1/execute/stream`, {
+          withCredentials: true as any,
+        });
+
+        es.onmessage = (ev) => {
+          try {
+            const evt = JSON.parse(ev.data);
+            if (evt.executionId !== data.executionId) return;
+
+            setNodeStatuses((prev) => ({
+              ...prev,
+              [evt.nodeId]: evt.status,
+            }));
+          } catch {}
+        };
+
+        es.onerror = () => {
+          es.close();
+          setIsExecuting(false);
+        };
+      } catch {
+        toast.error("Failed to execute workflow");
+        setIsExecuting(false);
+      }
+      setIsExecuting(false);
+      return;
+    }
+
+    toast.error("No valid trigger found in this workflow");
+  };
+
+  // Node form renderer
   const nodeFormRenderers = {
     trigger: {
       "manual-trigger": () => (
-        <Button className="bg-corporateBlue" onClick={handleExecuteWorkflow} disabled={isExecuting}>
+        <Button
+          className="bg-corporateBlue hover:bg-corporateBlue/95"
+          onClick={handleExecuteWorkflow}
+          disabled={isExecuting}
+        >
           {isExecuting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FlaskConical />}
           Execute Workflow
         </Button>
       ),
 
       "webhook-trigger": () => {
-        const url = id ? `${BACKEND_URL}/webhook/${id}` : "";
+        const url = id ? `${BACKEND_URL}/api/webhook/${id}` : "";
+
         return (
           <div className="flex flex-col gap-3">
             <Label>Webhook URL</Label>
@@ -335,9 +395,12 @@ export const FlowPage = () => {
               <Input value={url} readOnly />
               <Button
                 className="bg-corporateBlue"
-                onClick={() => navigator.clipboard.writeText(url).then(() => toast.success("Copied"))}
+                onClick={() =>
+                  navigator.clipboard.writeText(url).then(() => toast.success("Copied"))
+                }
               >
-                <Copy className="mr-2 h-4 w-4" /> Copy
+                <Copy className="mr-2 h-4 w-4" />
+                Copy
               </Button>
             </div>
           </div>
@@ -349,8 +412,9 @@ export const FlowPage = () => {
       telegram: (fd, update) => (
         <div className="flex flex-col gap-3">
           <Label>Credential</Label>
+
           <CredentialSelector
-            appType="telegram"
+            platform="telegram"
             credentials={credentials}
             value={fd.credential}
             onAdd={() => openCreateCredentialDialog("telegram")}
@@ -358,18 +422,25 @@ export const FlowPage = () => {
           />
 
           <Label>Chat ID</Label>
-          <Input value={fd.chatId || ""} onChange={(e) => update("chatId", e.target.value)} />
+          <Input
+            value={fd.chatId || ""}
+            onChange={(e) => update("chatId", e.target.value)}
+          />
 
           <Label>Message</Label>
-          <Input value={fd.message || ""} onChange={(e) => update("message", e.target.value)} />
+          <Input
+            value={fd.message || ""}
+            onChange={(e) => update("message", e.target.value)}
+          />
         </div>
       ),
 
       resend: (fd, update) => (
         <div className="flex flex-col gap-3">
           <Label>Credential</Label>
+
           <CredentialSelector
-            appType="resend"
+            platform="resend"
             credentials={credentials}
             value={fd.credential}
             onAdd={() => openCreateCredentialDialog("resend")}
@@ -377,13 +448,22 @@ export const FlowPage = () => {
           />
 
           <Label>To</Label>
-          <Input value={fd.to || ""} onChange={(e) => update("to", e.target.value)} />
+          <Input
+            value={fd.to || ""}
+            onChange={(e) => update("to", e.target.value)}
+          />
 
           <Label>Subject</Label>
-          <Input value={fd.subject || ""} onChange={(e) => update("subject", e.target.value)} />
+          <Input
+            value={fd.subject || ""}
+            onChange={(e) => update("subject", e.target.value)}
+          />
 
           <Label>Body</Label>
-          <Input value={fd.body || ""} onChange={(e) => update("body", e.target.value)} />
+          <Input
+            value={fd.body || ""}
+            onChange={(e) => update("body", e.target.value)}
+          />
         </div>
       ),
     },
@@ -391,40 +471,67 @@ export const FlowPage = () => {
 
   const renderNodeForm = () => {
     if (!selectedNode) return null;
+
     const nodeKind = selectedNode.type;
     const nodeType = (selectedNode.data as any)?.type;
+
     const renderer = nodeFormRenderers[nodeKind]?.[nodeType];
     return renderer ? renderer(formData, updateForm) : <div>No config</div>;
   };
+
+  // Loading screen
+  if (loading) {
+    return (
+      <div className="m-16 mx-auto max-w-7xl w-full flex items-center justify-center h-[850px]">
+        <Loader2 className="animate-spin text-corporateBlue" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden pt-14">
       {/* HEADER */}
       <div className="flex h-16 items-center justify-between">
         <div className="flex gap-2 items-center">
-          <div className="font-vietnam font-medium text-neutral-700 ml-2 ">Workflow</div>
-          <Input 
+          <div className="font-vietnam font-medium text-neutral-700 ml-2">Workflow</div>
+
+          <Input
             placeholder="workflow name"
             className="font-vietnam border-zinc-200 border-2"
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
           />
-          
+
+          {/* SAVED NAME TAG */}
+          {savedWorkflowName && (
+            <span className="text-neutral-700 font-vietnam text-lg">
+              ({savedWorkflowName})
+            </span>
+          )}
         </div>
+
         <div className="flex items-center gap-5">
           <div className="flex gap-2 items-center font-vietnam">
             Enabled: <SlideToggle enabled={enable} setEnable={setEnable} />
             <span className="text-sm opacity-70">{enable ? "On" : "Off"}</span>
           </div>
 
-          <Button className="bg-corporateBlue font-vietnam hover:bg-corporateBlue/85 mr-2" onClick={handleSaveWorkflow} disabled={saving}>
-            {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Save"}
+          <Button
+            className="bg-corporateBlue font-vietnam hover:bg-corporateBlue/85 mr-2"
+            onClick={handleSaveWorkflow}
+            disabled={saving}
+          >
+            {saving ? (
+              <Loader2 className="animate-spin mr-2 h-4 w-4" />
+            ) : (
+              "Save"
+            )}
           </Button>
         </div>
       </div>
 
-      {/* REACTFLOW CANVAS */}
-      <div className="flex-1 w-full bg-neutral-100 ">
+      {/* FLOW CANVAS */}
+      <div className="flex-1 w-full bg-neutral-100">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -440,19 +547,27 @@ export const FlowPage = () => {
           }}
         >
           <Panel position="bottom-center">
-            <Button className="bg-corporateBlue font-vietnam" onClick={handleExecuteWorkflow} disabled={isExecuting}>
-              {isExecuting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Play />}
+            <Button
+              className="bg-corporateBlue font-vietnam rounded-sm hover:bg-corporateBlue/90"
+              onClick={handleExecuteWorkflow}
+              disabled={isExecuting}
+            >
+              {isExecuting ? (
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+              ) : (
+                <Play />
+              )}
               Execute
             </Button>
           </Panel>
 
           <Panel position="top-right">
             <Button
-              className="border border-blue-400 h-10 w-10"
+              className="border border-2 bg-neutral-100 border-blue-400 h-10 w-10"
               variant="ghost"
               onClick={() => openPicker(nodes.length === 0 ? "trigger" : "action")}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5" />
             </Button>
           </Panel>
 
@@ -467,12 +582,14 @@ export const FlowPage = () => {
         <SheetContent className="bg-gradient-to-b from-zinc-300 to-slate-300">
           {pickerMode === "trigger" ? (
             <>
-
               <SheetHeader className="mt-10">
-                
-                <SheetTitle className="flex font-vietnam text-xl ml-2"><SquarePower className=" bg-zinc-300 border-2 border-zinc-100 mr-2 rounded-md p-1 size-8 "/>
-                   Select a trigger</SheetTitle>
-                <SheetDescription className="font-vietnam text-neutral-600 ml-3">A trigger starts your workflow</SheetDescription>
+                <SheetTitle className="flex font-vietnam text-xl ml-2">
+                  <SquarePower className="bg-zinc-300 border-2 border-zinc-100 mr-2 rounded-md p-1 size-8" />
+                  Select a trigger
+                </SheetTitle>
+                <SheetDescription className="font-vietnam text-neutral-600 ml-3">
+                  A trigger starts your workflow
+                </SheetDescription>
               </SheetHeader>
 
               <div className="flex flex-col gap-5 mx-5 mt-4">
@@ -485,7 +602,9 @@ export const FlowPage = () => {
             <>
               <SheetHeader className="mt-10">
                 <SheetTitle className="font-vietnam">What happens next?</SheetTitle>
-                <SheetDescription className="font-vietnam">Add an action step</SheetDescription>
+                <SheetDescription className="font-vietnam">
+                  Add an action step
+                </SheetDescription>
               </SheetHeader>
 
               <div className="flex flex-col gap-3 mx-5 mt-4">
@@ -519,7 +638,7 @@ export const FlowPage = () => {
               <Button variant="ghost" onClick={() => setIsConfigOpen(false)}>
                 Cancel
               </Button>
-              <Button className="bg-corporateBlue" onClick={handleSaveNodeConfig}>
+              <Button className="bg-corporateBlue hover:bg-corporateBlue/95" onClick={handleSaveNodeConfig}>
                 Save
               </Button>
             </DialogFooter>
@@ -531,9 +650,9 @@ export const FlowPage = () => {
       <CredentialDialog
         isOpen={isCredDialogOpen}
         onOpenChange={setIsCredDialogOpen}
-        app={credSelectedApp}
-        credName={credName}
-        setCredName={setCredName}
+        platform={credPlatform}
+        credTitle={credTitle}
+        setCredTitle={setCredTitle}
         setCredData={setCredData}
         creating={creatingCred}
         onCreate={handleCreateCredential}
