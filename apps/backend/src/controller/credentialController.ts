@@ -57,7 +57,7 @@ export async function deleteCredential(req: Request, res: Response) {
             })
         }
 
-        const existing = await prismaClient.credential.findUnique({
+        const existing = await prismaClient.credential.findFirst({
             where: {
                 id: credentialId,
                 userId: userId
