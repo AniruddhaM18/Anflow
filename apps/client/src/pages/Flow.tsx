@@ -67,7 +67,7 @@ export const FlowPage = () => {
   const [enable, setEnable] = useState(false);
 
   const [workflowName, setWorkflowName] = useState("");
-  const [savedWorkflowName, setSavedWorkflowName] = useState("");   // <<< ADDED
+  const [savedWorkflowName, setSavedWorkflowName] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -102,7 +102,7 @@ export const FlowPage = () => {
   const [formData, setFormData] = useState<any>({});
 
   const updateForm = (k: string, v: any) =>
-    setFormData((prev) => ({ ...prev, [k]: v }));
+    setFormData((prev:any) => ({ ...prev, [k]: v }));
 
   // NEW Credential hook
   const {
@@ -113,7 +113,6 @@ export const FlowPage = () => {
 
     credPlatform,
     credTitle,
-    credData,
     setCredTitle,
     setCredData,
     openCreateCredentialDialog,
@@ -134,20 +133,20 @@ export const FlowPage = () => {
 
   // ReactFlow handlers
   const onNodesChange = useCallback(
-    (chs) => setNodes((nds) => applyNodeChanges(chs, nds)),
+    (chs:any) => setNodes((nds) => applyNodeChanges(chs, nds)),
     []
   );
   const onEdgesChange = useCallback(
-    (chs) => setEdges((eds) => applyEdgeChanges(chs, eds)),
+    (chs:any) => setEdges((eds) => applyEdgeChanges(chs, eds)),
     []
   );
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params:any) => setEdges((eds) => addEdge(params, eds)),
     []
   );
 
   // Node click
-  const onNodeClick = useCallback((_, node) => {
+  const onNodeClick = useCallback((_:any, node:any) => {
     setSelectedNode(node);
     setFormData((node.data as any)?.config || {});
     setIsConfigOpen(true);
@@ -185,7 +184,7 @@ export const FlowPage = () => {
         const wf = res.data.workflow;
 
         setWorkflowName(wf.title || "");
-        setSavedWorkflowName(wf.title || "");    // <<< ADDED
+        setSavedWorkflowName(wf.title || "");
         setEnable(wf.isEnabled ?? false);
 
         if (wf.flow) {
@@ -225,7 +224,7 @@ export const FlowPage = () => {
         if (!res.data.success) return toast.error(res.data.message);
 
         toast.success(res.data.message);
-        setSavedWorkflowName(workflowName);   // <<< ADDED
+        setSavedWorkflowName(workflowName);
       } else {
         const res = await axios.post(
           `${BACKEND_URL}/api/workflow/create`,
@@ -242,7 +241,7 @@ export const FlowPage = () => {
         if (!res.data.success) return toast.error(res.data.message);
 
         toast.success(res.data.message);
-        setSavedWorkflowName(workflowName);   // <<< ADDED
+        setSavedWorkflowName(workflowName);
         navigate(`/workflows/${res.data.workflow.id}`);
       }
     } catch {
@@ -269,7 +268,7 @@ export const FlowPage = () => {
   };
 
   // Add action node
-  const handleSelectAction = (action) => {
+  const handleSelectAction = (action:any) => {
     const newId = `a-${Date.now()}`;
 
     setNodes((prev) => [
@@ -288,7 +287,7 @@ export const FlowPage = () => {
   // Execute workflow
   const getTriggerType = () => {
     const triggerNode = nodes.find((n) => n.type === "trigger");
-    return triggerNode?.data?.type;
+    return (triggerNode?.data as any)?.type;
   };
 
   const handleExecuteWorkflow = async () => {
@@ -409,7 +408,7 @@ export const FlowPage = () => {
     },
 
     action: {
-      telegram: (fd, update) => (
+      telegram: (fd:any, update:any) => (
         <div className="flex flex-col gap-3">
           <Label>Credential</Label>
 
@@ -435,7 +434,7 @@ export const FlowPage = () => {
         </div>
       ),
 
-      resend: (fd, update) => (
+      resend: (fd:any, update:any) => (
         <div className="flex flex-col gap-3">
           <Label>Credential</Label>
 
@@ -472,12 +471,16 @@ export const FlowPage = () => {
   const renderNodeForm = () => {
     if (!selectedNode) return null;
 
-    const nodeKind = selectedNode.type;
+    const nodeKind = selectedNode.type as string;
     const nodeType = (selectedNode.data as any)?.type;
+    const renderer = (nodeFormRenderers as Record<string, Record<string, any>>)[nodeKind]?.[nodeType];
 
-    const renderer = nodeFormRenderers[nodeKind]?.[nodeType];
     return renderer ? renderer(formData, updateForm) : <div>No config</div>;
   };
+
+  // compute safety flag for dialog (avoid using unknown in includes)
+  const nodeTypeValue = (selectedNode?.data as any)?.type;
+  const isTrigger = typeof nodeTypeValue === "string" && ["manual-trigger", "webhook-trigger"].includes(nodeTypeValue);
 
   // Loading screen
   if (loading) {
@@ -624,16 +627,14 @@ export const FlowPage = () => {
       <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
         <DialogContent className="font-vietnam">
           <DialogHeader>
-            <DialogTitle>{selectedNode?.data?.label || "Node"} Settings</DialogTitle>
+            <DialogTitle>{String((selectedNode?.data as any)?.label ?? "Node")} Settings</DialogTitle>
             <DialogDescription>Configure this node</DialogDescription>
           </DialogHeader>
 
           <div className="mt-2">{renderNodeForm()}</div>
 
-          {!(
-            selectedNode?.type === "trigger" &&
-            ["manual-trigger", "webhook-trigger"].includes(selectedNode.data?.type)
-          ) && (
+          {/* only show Save/Cancel when NOT a trigger's default UI */}
+          {!(selectedNode?.type === "trigger" && isTrigger) && (
             <DialogFooter>
               <Button variant="ghost" onClick={() => setIsConfigOpen(false)}>
                 Cancel
@@ -660,3 +661,5 @@ export const FlowPage = () => {
     </div>
   );
 };
+
+export default FlowPage;

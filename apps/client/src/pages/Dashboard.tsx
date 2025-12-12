@@ -22,84 +22,90 @@ import TgCredentials from "../components/credentials/TelegramCredential";
 import { Input } from "../components/ui/input";
 import axios from "axios";
 import { toast } from "sonner";
-import { CredentialsCards } from "../components/credentials/CredentialCard";
 import { Loader2 } from "lucide-react";
 import ExecutionsCards from "../components/ExecutionsCard";
 import { WorkflowCards } from "../components/WorkflowCard";
 import { BACKEND_URL } from "../lib/config";
-import type { Credential as UICredential } from "../components/credentials/useCredentials";
-
+import { CredentialsCards } from "../components/credentials/CredentialCard";
 
 const demoApplications = [
   { key: "telegram", name: "Telegram" },
   { key: "resend", name: "Resend (Mail)" },
 ];
 
-export interface Credential {
-  id: string;
-  user_id: string;
-  name: string;
-  application: string;
-  data: {
-    apikey?: string;
-    accessToken?: string;
-    businessAccountId?: string;
-  };
-  created_at: string;
-  updated_at: string;
-}
-
 const DashBoardPage = () => {
   const navigate = useNavigate();
-  const [applications] = useState(demoApplications);
+
+  // dialog + credential creation
   const [selectedApp, setSelectedApp] = useState("");
   const [credName, setCredName] = useState("");
   const [credData, setCredData] = useState({});
-  const [credentials, setCredentials] = useState<UICredential[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [workflows, setWorkflows] = useState([]);
+
+  // workflows
+  const [workflows, setWorkflows] = useState<any[]>([]);
   const [loadingWorkflow, setLoadingWorkflow] = useState(false);
-  const [executions, setExecutions] = useState([]);
+
+  // executions
+  const [executions, setExecutions] = useState<any[]>([]);
   const [loadingExecutions, setLoadingExecutions] = useState(false);
+
+  // auth loading
   const [authLoading, setAuthLoading] = useState(true);
 
+  // --------------------------------------
+  // CHECK AUTH
+  // --------------------------------------
   useEffect(() => {
     axios
       .get(`${BACKEND_URL}/api/auth/me`, { withCredentials: true })
-      .then((res) => {
-        // user authenticated, continue
-        setAuthLoading(false);
-      })
-      .catch(() => {
-        // user not logged in
-        navigate("/signin");
-      });
-  }, []);
+      .then(() => setAuthLoading(false))
+      .catch(() => navigate("/signin"));
+  }, [navigate]);
 
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAllCredentials();
-    fetchAllWorkflows();
-    fetchAllExecutions();
-  }, []);
-
-  const fetchAllExecutions = async () => {
-    setLoadingExecutions(true);
+  // --------------------------------------
+  // FETCH WORKFLOWS
+  // --------------------------------------
+  const fetchAllWorkflows = async () => {
+    setLoadingWorkflow(true);
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/execute/all`, {
+      const response = await axios.get(`${BACKEND_URL}/api/workflow/all`, {
         withCredentials: true,
       });
 
-      const data = response.data;
+      const list = response.data.workflows || [];
 
-      if (!data.success) {
-        console.error(data.message);
-        return;
-      }
+      const mapped = list.map((w: any) => ({
+        id: w.id,
+        name: w.title,
+        enabled: w.isEnabled,
+        created_at: w.createdAt,
+        updated_at: w.updatedAt,
+      }));
 
-      const mapped = data.executions.map((e: any) => ({
+      setWorkflows(mapped);
+    } catch (err) {
+      console.log("Error fetching workflows:", err);
+      setWorkflows([]);
+    } finally {
+      setLoadingWorkflow(false);
+    }
+  };
+
+  // --------------------------------------
+  // FETCH EXECUTIONS
+  // --------------------------------------
+  const fetchAllExecutions = async () => {
+    setLoadingExecutions(true);
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/execute/all`, {
+        withCredentials: true,
+      });
+
+      if (!res.data.success) return;
+
+      const mapped = res.data.executions.map((e: any) => ({
         id: e.id,
         status: e.status,
         startedAt: e.startedAt,
@@ -111,78 +117,24 @@ const DashBoardPage = () => {
       }));
 
       setExecutions(mapped);
-    } catch (error) {
-      console.log("Error fetching executions:", error);
+    } catch (err) {
+      console.log("Error fetching executions:", err);
     } finally {
       setLoadingExecutions(false);
     }
   };
 
-  const fetchAllWorkflows = async () => {
-    setLoadingWorkflow(true);
-    try {
-      const response = await axios.get(`${BACKEND_URL}/api/workflow/all`, {
-        withCredentials: true,
-      });
+  // --------------------------------------
+  // INITIAL LOAD
+  // --------------------------------------
+  useEffect(() => {
+    fetchAllWorkflows();
+    fetchAllExecutions();
+  }, []);
 
-      const workflows = response.data.workflows || [];
-
-      const mapped = workflows.map((w: any) => ({
-        id: w.id,
-        name: w.title,
-        enabled: w.isEnabled,
-        created_at: w.createdAt,
-        updated_at: w.updatedAt,
-      }));
-
-      setWorkflows(mapped);
-    } catch (error) {
-      console.log("Error fetching workflows:", error);
-      setWorkflows([]);
-    } finally {
-      setLoadingWorkflow(false);
-    }
-  };
-
-
-  const fetchAllCredentials = async () => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/api/credentials/credential/all`, {
-        withCredentials: true,
-      });
-
-      const data = response.data;
-
-      if (!data.success) {
-        console.log(data.error);
-        setLoading(false);
-        return;
-      }
-
-      const mapped: UICredential[] = data.credentials.map((c: Credential) => ({
-        id: c.id,
-        userId: c.user_id,
-        title: c.name,
-        platform: c.application,
-        data: c.data,
-        createdAt: c.created_at,
-        updatedAt: c.updated_at,
-      }));
-
-      setCredentials(
-        mapped.sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() -
-            new Date(a.updatedAt).getTime()
-        )
-      );
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // --------------------------------------
+  // CREATE CREDENTIAL
+  // --------------------------------------
   const handleCreateCredentials = async () => {
     setIsCreating(true);
     try {
@@ -192,53 +144,59 @@ const DashBoardPage = () => {
         data: credData,
       };
 
-      const response = await axios.post(
+      const res = await axios.post(
         `${BACKEND_URL}/api/credentials/credential/create`,
         payload,
         { withCredentials: true }
       );
 
-      const data = response.data;
-
-      if (!data.success) {
-        toast.error(data.message);
-        console.log(data.error);
+      if (!res.data.success) {
+        toast.error(res.data.message);
         return;
       }
 
-      toast.success(data.message);
+      toast.success("Credential created");
 
+      // reset UI
       setCredName("");
       setCredData({});
       setSelectedApp("");
       setIsDialogOpen(false);
-
-      await fetchAllCredentials();
-    } catch (error) {
-      console.error("Error creating credential:", error);
+    } catch (e) {
       toast.error("Failed to create credential");
     } finally {
       setIsCreating(false);
     }
   };
 
-  const handleDeleteCredential = async (id: string) => {
+  // --------------------------------------
+  // DELETE WORKFLOW
+  // --------------------------------------
+  const handleWorkflowDeleted = async (workflowId: string) => {
     try {
       const response = await axios.delete(
-        `${BACKEND_URL}/credentials/${id}`,
+        `${BACKEND_URL}/api/workflow/${workflowId}`,
         { withCredentials: true }
       );
 
-      const data = response.data;
-      if (!data.success) {
-        toast.error(data.message || "Delete failed");
+      if (!response.data.success) {
+        toast.error(response.data.message || "Delete failed");
         return;
       }
 
-      setCredentials((prev) => prev.filter((c) => c.id !== id));
-      toast.success(data.message);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Delete failed");
+      toast.success("Workflow deleted");
+
+      setWorkflows(
+        response.data.workflows.map((w: any) => ({
+          id: w.id,
+          name: w.title,
+          enabled: w.isEnabled,
+          created_at: w.createdAt,
+          updated_at: w.updatedAt,
+        }))
+      );
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Error deleting workflow");
     }
   };
 
@@ -250,162 +208,148 @@ const DashBoardPage = () => {
     );
   }
 
-  ///will write this later
-  async function handleWorkflowDeleted(workflowId: string) {
-    try {
-
-      const response = await axios.delete(`${BACKEND_URL}/api/workflow/${workflowId}`,
-        { withCredentials: true }
-      );
-      const data = response.data;
-
-      if (!data.success) {
-        toast.error(data.message || "Delete failed");
-        return;
-      }
-      toast.success("Workflow deleted successfully");
-
-      // Remove workflow from UI immediately
-      setWorkflows(
-        response.data.workflows.map((w: any) => ({
-          id: w.id,
-          name: w.title,
-          enabled: w.isEnabled,
-          updated_at: w.updatedAt,
-          created_at: w.createdAt
-        }))
-      );
-    } catch (err: any) {
-      console.error("Error deleting workflow:", err);
-      toast.error(err?.response?.data?.message || "Failed to delete workflow");
-    }
-  }
-
+  // --------------------------------------
+  // UI
+  // --------------------------------------
   return (
-    <div className="m-16 mx-auto max-w-7xl w-full font-vietnam,">
+    <div className="m-16 mx-auto max-w-7xl w-full font-vietnam">
       <div className="flex justify-between">
-        <div className="">
-          <div className="text-2xl font-bold font-vietnam text-corporateBlue">
-            Dashboard
-          </div>
-          <div className="font-vietnam">
-            All your workflows, credentials and executions
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-corporateBlue">Dashboard</h1>
+          <p>All your workflows, credentials and executions</p>
         </div>
-        <div className="flex items-center gap-2 font-vietnam">
+
+        {/* ACTIONS */}
+        <div className="flex items-center gap-2">
           <Button
             onClick={() => navigate("/workflows")}
-            className="bg-corporateBlue hover:bg-corporateBlue/90 rounded-sm "
+            className="bg-corporateBlue hover:bg-corporateBlue/90"
           >
             Create Workflow
           </Button>
+
+          {/* CREATE CREDENTIALS */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-corporateBlue hover:bg-corporateBlue/90 rounded-sm ">Create Credentials</Button>
+              <Button className="bg-corporateBlue hover:bg-corporateBlue/90">
+                Create Credentials
+              </Button>
             </DialogTrigger>
-            <DialogContent className="font-vietnam">
+
+            <DialogContent>
               <DialogHeader>
-                <DialogTitle className="font-vietnam font-bold text-corporateBlue">
+                <DialogTitle className="text-corporateBlue font-bold">
                   Select Application
                 </DialogTitle>
                 <DialogDescription>
-                  Choose an application to create credentials for
+                  Choose an application to create credentials for.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+
+              <div className="space-y-4 font-vietnam">
+                {/* APP SELECT */}
                 <Select
-                  onValueChange={(value) => setSelectedApp(value)}
+                  onValueChange={setSelectedApp}
                   value={selectedApp}
                 >
-                  <SelectTrigger className="w-full font-vietnam">
+                  <SelectTrigger>
                     <SelectValue placeholder="Application" />
                   </SelectTrigger>
-                  <SelectContent className="font-vietnam">
-                    {applications.map((app) => (
+                  <SelectContent>
+                    {demoApplications.map((app) => (
                       <SelectItem key={app.key} value={app.key}>
-                        {app.name} 
+                        {app.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="space-y-3 font-vietnam">
-                  <Input
-                    placeholder="Credential Name"
-                    value={credName}
-                    onChange={(e) => setCredName(e.target.value)}
-                  />
 
-                  {selectedApp === "telegram" && (
-                    <TgCredentials onDataChange={setCredData} />
-                  )}
+                {/* NAME */}
+                <Input
+                  placeholder="Credential Name"
+                  value={credName}
+                  onChange={(e) => setCredName(e.target.value)}
+                />
 
-                  {selectedApp === "resend" && (
-                    <ResendCredential onDataChange={setCredData} />
-                  )}
-                  <Button
-                    className="font-vietnam w-full bg-corporateBlue"
-                    onClick={handleCreateCredentials}
-                    disabled={isCreating || !selectedApp || !credName}
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create Credential"
-                    )}
-                  </Button>
-                </div>
+                {/* DYNAMIC SUBFORM */}
+                {selectedApp === "telegram" && (
+                  <TgCredentials onDataChange={setCredData} />
+                )}
+                {selectedApp === "resend" && (
+                  <ResendCredential onDataChange={setCredData} />
+                )}
+
+                <Button
+                  className="w-full bg-corporateBlue"
+                  onClick={handleCreateCredentials}
+                  disabled={!selectedApp || !credName || isCreating}
+                >
+                  {isCreating ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
+                  {isCreating ? "Creating..." : "Create Credential"}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* LOGOUT */}
           <Button
             onClick={async () => {
-              await axios.post(`${BACKEND_URL}/api/auth/logout`, {}, { withCredentials: true });
+               await axios.post(`${BACKEND_URL}/api/auth/logout`, {}, {
+            withCredentials:true
+            });
               navigate("/");
             }}
-            className="bg-corporateBlue hover:bg-corporateBlue/90 rounded-sm"
+            className="bg-corporateBlue hover:bg-corporateBlue/90"
           >
             Logout
           </Button>
         </div>
       </div>
 
-      <div className="mt-10 h-full w-full">
-        <Tabs defaultValue="workflows" className="font-vietnam">
+      {/* -------------------------------------- */}
+      {/* TABS */}
+      {/* -------------------------------------- */}
+      <div className="mt-10">
+        <Tabs defaultValue="workflows">
           <TabsList>
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
             <TabsTrigger value="credentials">Credentials</TabsTrigger>
             <TabsTrigger value="executions">Executions</TabsTrigger>
           </TabsList>
+
+          {/* WORKFLOWS */}
           <TabsContent value="workflows">
             {loadingWorkflow ? (
-              <div className="h-[600px] w-full justify-center flex items-center">
-                <Loader2 className="animate-spin text-corporateBlue" />
-              </div>
-            ) :
-              <WorkflowCards workflows={workflows} onWorkflowDeleted={handleWorkflowDeleted} />}
-          </TabsContent>
-          <TabsContent value="credentials">
-            {loading ? (
-              <div className="h-[600px] w-full justify-center flex items-center">
+              <div className="h-[400px] flex items-center justify-center">
                 <Loader2 className="animate-spin text-corporateBlue" />
               </div>
             ) : (
-              <CredentialsCards
-                credentials={credentials}
-                onDelete={handleDeleteCredential}
+              <WorkflowCards
+                workflows={workflows}
+                onWorkflowDeleted={handleWorkflowDeleted}
               />
             )}
           </TabsContent>
+
+          {/* CREDENTIALS — Uses Your Updated Component */}
+          <TabsContent value="credentials">
+            <CredentialsCards
+              onCredentialDeleted={() => {
+                // dashboard doesn’t store credentials anymore, but you can reload workflows/executions here if needed
+              }}
+            />
+          </TabsContent>
+
+          {/* EXECUTIONS */}
           <TabsContent value="executions">
             {loadingExecutions ? (
-              <div className="h-[600px] w-full justify-center flex items-center">
+              <div className="h-[400px] flex items-center justify-center">
                 <Loader2 className="animate-spin text-corporateBlue" />
               </div>
             ) : (
-              <ExecutionsCards executions={executions as any} />
+              <ExecutionsCards executions={executions} />
             )}
           </TabsContent>
         </Tabs>
