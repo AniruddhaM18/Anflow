@@ -7,7 +7,7 @@ type SlideToggleProps = {
 
 const SlideToggle = ({ enabled = false, setEnable }: SlideToggleProps) => {
   const [on, setOn] = useState(enabled);
-
+ 
   // Sync internal state with external enabled prop
   useEffect(() => {
     setOn(enabled);
