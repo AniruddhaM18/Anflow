@@ -1,6 +1,9 @@
 # Anflow
 
 A visual workflow automation platform. Build automations with a drag-and-drop editor, connect apps via credentials, and run workflows with real-time execution streaming.
+## Project Demo
+Quality of the video might affect due to upload size limitations.
+https://github.com/user-attachments/assets/f178cf6b-1a64-4b21-b531-60123f6bff9d
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react)
@@ -159,9 +162,6 @@ pnpm dev --filter=backend
 - **Backend:** Run on any Node host (e.g. Railway, Render, Fly.io). Set env vars and ensure CORS `allowedOrigins` includes your frontend URL.
 - **Database:** Use a hosted PostgreSQL (e.g. Neon, Supabase, Railway) and set `DATABASE_URL` everywhere it’s required.
 
-## Project Demo
-
-https://github.com/user-attachments/assets/f178cf6b-1a64-4b21-b531-60123f6bff9d
 
 
 ---
