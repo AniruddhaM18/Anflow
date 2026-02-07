@@ -2,7 +2,9 @@
 
 A visual workflow automation platform. Build automations with a drag-and-drop editor, connect apps via credentials, and run workflows with real-time execution streaming.
 ## Project Demo
+
 Quality of the video might affect due to upload size limitations.
+
 https://github.com/user-attachments/assets/f178cf6b-1a64-4b21-b531-60123f6bff9d
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)
