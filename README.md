@@ -1,135 +1,166 @@
-# Turborepo starter
+# Anflow
 
-This Turborepo starter is maintained by the Turborepo core team.
+A visual workflow automation platform. Build automations with a drag-and-drop editor, connect apps via credentials, and run workflows with real-time execution streaming.
 
-## Using this example
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react)
+![Node](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169e1?logo=postgresql)
+![License](https://img.shields.io/badge/License-ISC-lightgrey)
 
-Run the following command:
+---
 
-```sh
-npx create-turbo@latest
-```
+## Features
 
-## What's inside?
+- **Visual workflow builder** — Design automations with a node-based editor (React Flow)
+- **Triggers & actions** — Support for webhooks and actions (e.g. Telegram, Resend)
+- **Credentials** — Securely store and reuse API keys (Telegram, Resend)
+- **Real-time executions** — Live execution status via Server-Sent Events (SSE)
+- **Auth** — JWT-based sign up / sign in with email verification (Resend)
+- **Dashboard** — Manage workflows, credentials, and execution history
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+## Tech Stack
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+| Layer        | Technologies |
+|-------------|--------------|
+| **Monorepo** | pnpm, Turborepo |
+| **Frontend** | React 19, Vite 7, TypeScript, Tailwind CSS 4, Radix UI, shadcn/ui, React Flow (@xyflow/react), Motion |
+| **Backend**  | Node.js, Express 5, TypeScript |
+| **Database** | PostgreSQL, Prisma |
+| **Auth**     | JWT (jsonwebtoken), HTTP-only cookies |
+| **Integrations** | Resend (email), Telegram Bot API |
+| **Deploy**   | Vercel (client) |
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+---
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Project Structure
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+Anflow/
+├── apps/
+│   ├── client/          # React SPA (Vite)
+│   └── backend/         # Express API
+├── packages/
+│   ├── db/              # Prisma schema & client
+│   ├── ui/              # Shared React components
+│   ├── eslint-config/   # Shared ESLint config
+│   └── typescript-config/  # Shared tsconfigs
+├── package.json
+├── pnpm-workspace.yaml
+└── turbo.json
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## Prerequisites
 
-```
-cd my-turborepo
+- **Node.js** ≥ 18
+- **pnpm** 9.x (`npm install -g pnpm`)
+- **PostgreSQL** (local or hosted)
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+---
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+## Getting Started
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 1. Clone and install
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+git clone https://github.com/your-username/Anflow.git
+cd Anflow
+pnpm install
 ```
 
-### Remote Caching
+### 2. Environment variables
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+**Backend** (`apps/backend/`). Create `.env`:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
+JWT_SECRET="your-jwt-secret"
+APP_URL="http://localhost:5173"
+BACKEND_URL="http://localhost:3000"
+RESEND_KEY="re_xxxxxxxx"   # For email verification & Resend actions
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+**Client** (`apps/client/`). Create `.env`:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```env
+VITE_BACKEND_URL="http://localhost:3000"
 ```
 
-## Useful Links
+**Database package** (`packages/db/`). Create `.env` (or use same as backend):
 
-Learn more about the power of Turborepo:
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
+```
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+### 3. Database
+
+From repo root:
+
+```bash
+cd packages/db && pnpm prisma generate
+pnpm prisma migrate deploy
+# Or for dev: pnpm prisma migrate dev
+cd ../..
+```
+
+### 4. Run development
+
+From repo root:
+
+```bash
+pnpm dev
+```
+
+- **Client:** http://localhost:5173  
+- **Backend:** http://localhost:3000  
+
+To run a single app:
+
+```bash
+pnpm dev --filter=client
+pnpm dev --filter=backend
+```
+
+---
+
+## Scripts
+
+| Command | Description |
+|--------|-------------|
+| `pnpm dev` | Start all apps in dev mode (Turborepo) |
+| `pnpm build` | Build all apps and packages |
+| `pnpm lint` | Lint all packages |
+| `pnpm format` | Format code with Prettier |
+| `pnpm check-types` | Type-check all packages |
+
+---
+
+## API Overview
+
+| Base path | Description |
+|-----------|-------------|
+| `/api/auth` | Sign up, sign in, sign out, session |
+| `/api/credentials` | CRUD for credentials (Telegram, Resend) |
+| `/api/workflows` | Workflow CRUD |
+| `/api/webhook` | Webhook trigger endpoint |
+| `/api/execute` | Run workflow / execution status |
+| `/api/availableTrigger` | List available triggers |
+| `/api/v1/execute/stream` | SSE stream for execution updates |
+
+---
+
+## Deployment
+
+- **Frontend:** Configured for Vercel (`apps/client/vercel.json`). Set `VITE_BACKEND_URL` to your API URL.
+- **Backend:** Run on any Node host (e.g. Railway, Render, Fly.io). Set env vars and ensure CORS `allowedOrigins` includes your frontend URL.
+- **Database:** Use a hosted PostgreSQL (e.g. Neon, Supabase, Railway) and set `DATABASE_URL` everywhere it’s required.
+
+---
+
+## License
+
+ISC
