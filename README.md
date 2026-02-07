@@ -159,6 +159,11 @@ pnpm dev --filter=backend
 - **Backend:** Run on any Node host (e.g. Railway, Render, Fly.io). Set env vars and ensure CORS `allowedOrigins` includes your frontend URL.
 - **Database:** Use a hosted PostgreSQL (e.g. Neon, Supabase, Railway) and set `DATABASE_URL` everywhere it’s required.
 
+## Project Demo
+
+https://github.com/user-attachments/assets/f178cf6b-1a64-4b21-b531-60123f6bff9d
+
+
 ---
 
 ## License
